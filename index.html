@@ -3,984 +3,1107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌍 Thế giới AI 3D</title>
+    <title>🌍 Thế giới AI 3D - Hoàn chỉnh</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0e17;
-            color: #c8d6e5;
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        #app {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        #header {
-            background: rgba(20, 28, 43, 0.9);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(30, 42, 58, 0.5);
-            flex-shrink: 0;
-            flex-wrap: wrap;
-            gap: 8px;
-            backdrop-filter: blur(10px);
-            z-index: 10;
-            position: relative;
-        }
-
-        .logo {
-            font-size: 20px;
-            font-weight: 700;
-            color: #48dbfb;
-            text-shadow: 0 0 20px rgba(72, 219, 251, 0.3);
-        }
-
-        #stats {
-            display: flex;
-            gap: 16px;
-            font-size: 13px;
-            flex-wrap: wrap;
-        }
-
-        #stats span {
-            background: rgba(13, 20, 33, 0.8);
-            padding: 4px 12px;
-            border-radius: 12px;
-            white-space: nowrap;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        #controls {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        #controls button {
-            background: rgba(30, 42, 58, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            color: #c8d6e5;
-            padding: 4px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: 0.3s;
-            backdrop-filter: blur(5px);
-        }
-
-        #controls button:hover {
-            background: #48dbfb;
-            color: #0a0e17;
-            border-color: #48dbfb;
-        }
-
-        #controls button.active {
-            background: #48dbfb;
-            color: #0a0e17;
-            border-color: #48dbfb;
-        }
-
-        #controls button.danger {
-            background: rgba(255, 107, 107, 0.3);
-            color: #ff6b6b;
-            border-color: rgba(255, 107, 107, 0.3);
-        }
-
-        #controls button.danger:hover {
-            background: #ff6b6b;
-            color: #0a0e17;
-            border-color: #ff6b6b;
-        }
-
-        #world-container {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-        }
-
-        #world-container canvas {
-            display: block;
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        #info-panel {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(20, 28, 43, 0.85);
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-size: 12px;
-            color: #8395a7;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            pointer-events: none;
-            white-space: nowrap;
-        }
-
-        #npc-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.3s ease;
-            backdrop-filter: blur(5px);
-        }
-
-        #npc-modal.show {
-            display: flex;
-        }
-
-        @keyframes fadeIn {
-            0% { opacity: 0; transform: scale(0.9); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
-        .modal-content {
-            background: #141c2b;
-            padding: 28px;
-            border-radius: 16px;
-            max-width: 450px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid #1e2a3a;
-            position: relative;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 12px;
-            right: 16px;
-            font-size: 24px;
-            cursor: pointer;
-            color: #8395a7;
-            transition: 0.3s;
-            background: none;
-            border: none;
-        }
-
-        .close-btn:hover {
-            color: #ff6b6b;
-            transform: rotate(90deg);
-        }
-
-        #npc-info .field {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            font-size: 13px;
-        }
-
-        #npc-info .field .label {
-            color: #8395a7;
-        }
-
-        #npc-info .field .value {
-            color: #ecf0f1;
-        }
-
-        #npc-info .field .value.highlight {
-            color: #48dbfb;
-            font-weight: 600;
-        }
-
-        .modal-title {
-            color: #48dbfb;
-            font-size: 20px;
-            margin-bottom: 12px;
-            padding-right: 30px;
-        }
-
-        @media (max-width: 768px) {
-            #stats {
-                font-size: 11px;
-                gap: 8px;
-            }
-            #stats span {
-                padding: 2px 8px;
-            }
-            .logo {
-                font-size: 16px;
-            }
-            #controls button {
-                font-size: 10px;
-                padding: 3px 8px;
-            }
-            #info-panel {
-                font-size: 10px;
-                padding: 4px 12px;
-                bottom: 10px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            #header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 4px;
-                padding: 8px;
-            }
-            #stats {
-                justify-content: center;
-            }
-            #controls {
-                justify-content: center;
-            }
-            #info-panel {
-                display: none;
-            }
-            #stats span {
-                font-size: 10px;
-                padding: 2px 6px;
-            }
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0e17;color:#c8d6e5;overflow:hidden;height:100vh}
+        #app{display:flex;flex-direction:column;height:100vh}
+        #header{background:rgba(20,28,43,0.95);padding:8px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e2a3a;flex-shrink:0;flex-wrap:wrap;gap:6px;z-index:10}
+        .logo{font-size:18px;font-weight:700;color:#48dbfb}
+        #stats{display:flex;gap:10px;font-size:12px;flex-wrap:wrap}
+        #stats span{background:#0d1421;padding:3px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.05)}
+        #controls{display:flex;gap:4px;flex-wrap:wrap}
+        #controls button{background:#1e2a3a;border:1px solid rgba(255,255,255,0.05);color:#c8d6e5;padding:3px 10px;border-radius:6px;cursor:pointer;font-size:11px;transition:.3s}
+        #controls button:hover{background:#48dbfb;color:#0a0e17}
+        #controls button.active{background:#48dbfb;color:#0a0e17}
+        #controls button.danger{background:rgba(255,107,107,0.3);color:#ff6b6b}
+        #controls button.danger:hover{background:#ff6b6b;color:#0a0e17}
+        #world-container{flex:1;position:relative;overflow:hidden}
+        #world-container canvas{display:block;width:100%!important;height:100%!important}
+        #info-panel{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(20,28,43,0.85);padding:6px 14px;border-radius:10px;font-size:11px;color:#8395a7;border:1px solid rgba(255,255,255,0.05);backdrop-filter:blur(10px);pointer-events:none;white-space:nowrap}
+        #sidebar{position:absolute;right:0;top:0;width:220px;height:100%;background:rgba(20,28,43,0.92);padding:12px;overflow-y:auto;border-left:1px solid #1e2a3a;backdrop-filter:blur(10px);display:none}
+        #sidebar.show{display:block}
+        #sidebar h4{color:#48dbfb;font-size:12px;margin:8px 0 4px;border-bottom:1px solid #1e2a3a;padding-bottom:3px}
+        .stat-row{display:flex;justify-content:space-between;font-size:11px;padding:2px 0}
+        .stat-row span:first-child{color:#8395a7}
+        .npc-item{padding:3px 8px;margin:2px 0;background:#0d1421;border-radius:4px;cursor:pointer;font-size:11px;display:flex;justify-content:space-between;transition:.3s}
+        .npc-item:hover{background:#1e2a3a}
+        #npc-modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.7);justify-content:center;align-items:center;animation:fadeIn .3s ease}
+        #npc-modal.show{display:flex}
+        @keyframes fadeIn{0%{opacity:0;transform:scale(0.9)}100%{opacity:1;transform:scale(1)}}
+        .modal-content{background:#141c2b;padding:24px;border-radius:12px;max-width:400px;width:90%;max-height:70vh;overflow-y:auto;border:1px solid #1e2a3a;position:relative}
+        .close-btn{position:absolute;top:10px;right:14px;font-size:20px;cursor:pointer;color:#8395a7;background:none;border:none}
+        .close-btn:hover{color:#ff6b6b;transform:rotate(90deg)}
+        .modal-title{color:#48dbfb;font-size:18px;margin-bottom:10px;padding-right:30px}
+        #npc-info .field{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px}
+        #npc-info .field .label{color:#8395a7}
+        #npc-info .field .value{color:#ecf0f1}
+        #npc-info .field .value.highlight{color:#48dbfb;font-weight:600}
+        @media(max-width:768px){#stats{font-size:10px;gap:6px}#stats span{padding:2px 6px}.logo{font-size:14px}#controls button{font-size:9px;padding:2px 6px}#sidebar{width:180px}}
+        @media(max-width:480px){#header{flex-direction:column;align-items:stretch;gap:4px;padding:6px}#stats{justify-content:center}#controls{justify-content:center}#sidebar{display:none}#info-panel{display:none}}
+        #time-display{color:#48dbfb}
+        .weather-icon{font-size:16px}
+        #building-info{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);padding:4px 12px;border-radius:8px;font-size:11px;color:#c8d6e5;display:none;pointer-events:none}
+        .mini-map{position:absolute;bottom:16px;right:16px;width:120px;height:120px;background:rgba(0,0,0,0.6);border-radius:8px;border:1px solid rgba(255,255,255,0.1);overflow:hidden;display:none}
+        .mini-map canvas{width:100%;height:100%}
     </style>
 </head>
 <body>
-
-    <div id="app">
-        <div id="header">
-            <div class="logo">🌍 Thế giới AI 3D</div>
-            <div id="stats">
-                <span id="time-display">⏰ Đang tải...</span>
-                <span id="weather-display">🌤️ --°C</span>
-                <span id="npc-count">👥 0</span>
-                <span id="fps-display">⚡ 0 FPS</span>
-            </div>
-            <div id="controls">
-                <button id="pause-btn" onclick="togglePause()">⏸️ Tạm dừng</button>
-                <button onclick="setSpeed(0.5)">🐢 0.5x</button>
-                <button onclick="setSpeed(1)" class="active">▶️ 1x</button>
-                <button onclick="setSpeed(2)">🐇 2x</button>
-                <button onclick="setSpeed(5)">🚀 5x</button>
-                <button onclick="addRandomNPC()" class="danger">➕ NPC</button>
-                <button onclick="toggleCamera()">🎥 Cam</button>
-            </div>
+<div id="app">
+    <div id="header">
+        <div class="logo">🌍 Thế giới AI 3D</div>
+        <div id="stats">
+            <span id="time-display">⏰ 06:00</span>
+            <span id="weather-display">🌤️ 25°C</span>
+            <span id="npc-count">👥 0</span>
+            <span id="fps-display">⚡ 60</span>
         </div>
-
-        <div id="world-container">
-            <div id="info-panel">🖱️ Click NPC → Xem thông tin | 🔄 Scroll → Zoom | 🖱️ Kéo → Xoay</div>
-        </div>
-
-        <div id="npc-modal" onclick="if(event.target===this)closeModal()">
-            <div class="modal-content">
-                <button class="close-btn" onclick="closeModal()">&times;</button>
-                <div id="npc-info"></div>
-            </div>
+        <div id="controls">
+            <button id="pause-btn" onclick="togglePause()">⏸️</button>
+            <button onclick="setSpeed(0.5)">0.5x</button>
+            <button onclick="setSpeed(1)" class="active">1x</button>
+            <button onclick="setSpeed(2)">2x</button>
+            <button onclick="setSpeed(5)">5x</button>
+            <button onclick="addRandomNPC()" class="danger">➕</button>
+            <button onclick="toggleSidebar()">📊</button>
+            <button onclick="toggleCamera()">🎥</button>
         </div>
     </div>
+    <div id="world-container">
+        <div id="info-panel">🖱️ Click → Xem | 🔄 Zoom | 🖱️ Kéo → Xoay</div>
+        <div id="building-info"></div>
+        <div id="sidebar">
+            <h4>📊 Thống kê</h4>
+            <div class="stat-row"><span>Tổng NPC:</span><span id="s-total">0</span></div>
+            <div class="stat-row"><span>Đang di chuyển:</span><span id="s-moving">0</span></div>
+            <div class="stat-row"><span>Đứng yên:</span><span id="s-idle">0</span></div>
+            <div class="stat-row"><span>Đói:</span><span id="s-hungry">0</span></div>
+            <div class="stat-row"><span>Mệt:</span><span id="s-tired">0</span></div>
+            <h4>🏙️ Thành phố</h4>
+            <div class="stat-row"><span>Nhà cửa:</span><span id="s-buildings">0</span></div>
+            <div class="stat-row"><span>Đường:</span><span id="s-roads">0</span></div>
+            <h4>🧑 NPC</h4>
+            <div id="npc-list"></div>
+        </div>
+    </div>
+    <div id="npc-modal" onclick="if(event.target===this)closeModal()">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <div id="npc-info"></div>
+        </div>
+    </div>
+</div>
 
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-            }
-        }
-    </script>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
-        // ============================================================
-        // DOM REFS
-        // ============================================================
-        const container = document.getElementById('world-container');
-        const timeDisplay = document.getElementById('time-display');
-        const weatherDisplay = document.getElementById('weather-display');
-        const npcCount = document.getElementById('npc-count');
-        const fpsDisplay = document.getElementById('fps-display');
-        const pauseBtn = document.getElementById('pause-btn');
+// ============================================================
+// DOM REFS
+// ============================================================
+const container = document.getElementById('world-container');
+const timeDisplay = document.getElementById('time-display');
+const weatherDisplay = document.getElementById('weather-display');
+const npcCount = document.getElementById('npc-count');
+const fpsDisplay = document.getElementById('fps-display');
+const pauseBtn = document.getElementById('pause-btn');
+const sidebar = document.getElementById('sidebar');
+const buildingInfo = document.getElementById('building-info');
 
-        // ============================================================
-        // WORLD STATE
-        // ============================================================
-        const world = {
-            npcs: [],
-            hours: 6,
-            days: 0,
-            months: 0,
-            years: 0,
-            weather: '☀️ Nắng',
-            temperature: 25,
-            isPaused: false,
-            speed: 1,
-            tickCount: 0,
-            npcIdCounter: 0,
-            worldSize: 200
-        };
+// ============================================================
+// WORLD CONFIG
+// ============================================================
+const WORLD_SIZE = 1000;
+const WORLD_CENTER = WORLD_SIZE / 2;
+const CONFIG = {
+    worldSize: WORLD_SIZE,
+    tickInterval: 0.5,
+    maxNPC: 500,
+    chunkSize: 100,
+    dayLength: 24,
+    monthLength: 30,
+    yearLength: 12
+};
 
-        // ============================================================
-        // THREE.JS SETUP
-        // ============================================================
-        const width = container.clientWidth;
-        const height = container.clientHeight;
+// ============================================================
+// WORLD STATE
+// ============================================================
+const world = {
+    npcs: [],
+    buildings: [],
+    roads: [],
+    trees: [],
+    animals: [],
+    hours: 6,
+    days: 0,
+    months: 0,
+    years: 0,
+    season: 'Xuân',
+    weather: '☀️ Nắng',
+    temperature: 25,
+    isPaused: false,
+    speed: 1,
+    tickCount: 0,
+    npcIdCounter: 0,
+    buildingIdCounter: 0,
+    economy: 1000,
+    time: 0
+};
 
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0e17);
-        scene.fog = new THREE.Fog(0x0a0e17, 150, 300);
+// ============================================================
+// THREE.JS SETUP
+// ============================================================
+const width = container.clientWidth;
+const height = container.clientHeight;
 
-        const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
-        camera.position.set(80, 60, 80);
-        camera.lookAt(0, 0, 0);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1a2e);
+scene.fog = new THREE.Fog(0x1a1a2e, 300, 600);
 
-        const renderer = new THREE.WebGLRenderer({
-            antialias: true,
-            alpha: true
-        });
-        renderer.setSize(width, height);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
-        container.appendChild(renderer.domElement);
+const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+camera.position.set(150, 120, 150);
+camera.lookAt(0, 0, 0);
 
-        const labelRenderer = new CSS2DRenderer();
-        labelRenderer.setSize(width, height);
-        labelRenderer.domElement.style.position = 'absolute';
-        labelRenderer.domElement.style.top = '0';
-        labelRenderer.domElement.style.left = '0';
-        labelRenderer.domElement.style.pointerEvents = 'none';
-        container.appendChild(labelRenderer.domElement);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(width, height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+container.appendChild(renderer.domElement);
 
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.maxPolarAngle = Math.PI / 2.1;
-        controls.minDistance = 10;
-        controls.maxDistance = 300;
-        controls.target.set(0, 0, 0);
-        controls.update();
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(width, height);
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0';
+labelRenderer.domElement.style.left = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+container.appendChild(labelRenderer.domElement);
 
-        // ============================================================
-        // LIGHTING
-        // ============================================================
-        const ambientLight = new THREE.AmbientLight(0x404060, 0.4);
-        scene.add(ambientLight);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.maxPolarAngle = Math.PI / 2.1;
+controls.minDistance = 10;
+controls.maxDistance = 500;
+controls.target.set(0, 0, 0);
+controls.update();
 
-        const sunLight = new THREE.DirectionalLight(0xffeedd, 1.5);
-        sunLight.position.set(50, 80, 30);
-        sunLight.castShadow = true;
-        sunLight.shadow.mapSize.width = 2048;
-        sunLight.shadow.mapSize.height = 2048;
-        sunLight.shadow.camera.near = 0.1;
-        sunLight.shadow.camera.far = 300;
-        sunLight.shadow.camera.left = -150;
-        sunLight.shadow.camera.right = 150;
-        sunLight.shadow.camera.top = 150;
-        sunLight.shadow.camera.bottom = -150;
-        scene.add(sunLight);
+// ============================================================
+// LIGHTING
+// ============================================================
+const ambientLight = new THREE.AmbientLight(0x404060, 0.3);
+scene.add(ambientLight);
 
-        const fillLight = new THREE.DirectionalLight(0x8888ff, 0.3);
-        fillLight.position.set(-30, 20, -30);
-        scene.add(fillLight);
+const sunLight = new THREE.DirectionalLight(0xffeedd, 1.5);
+sunLight.position.set(80, 120, 50);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.width = 4096;
+sunLight.shadow.mapSize.height = 4096;
+sunLight.shadow.camera.near = 0.5;
+sunLight.shadow.camera.far = 500;
+sunLight.shadow.camera.left = -200;
+sunLight.shadow.camera.right = 200;
+sunLight.shadow.camera.top = 200;
+sunLight.shadow.camera.bottom = -200;
+scene.add(sunLight);
 
-        const hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x3a1c00, 0.6);
-        scene.add(hemiLight);
+const fillLight = new THREE.DirectionalLight(0x8888ff, 0.2);
+fillLight.position.set(-50, 30, -50);
+scene.add(fillLight);
 
-        // ============================================================
-        // GROUND
-        // ============================================================
-        const groundGeometry = new THREE.PlaneGeometry(400, 400);
-        const groundMaterial = new THREE.MeshStandardMaterial({
-            color: 0x1a1a2e,
-            roughness: 0.9,
-            metalness: 0.0,
-        });
-        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-        ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
-        scene.add(ground);
+const hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x3a1c00, 0.5);
+scene.add(hemiLight);
 
-        const gridHelper = new THREE.GridHelper(400, 40, 0x2a2a4e, 0x1a1a3e);
-        gridHelper.position.y = 0.1;
-        scene.add(gridHelper);
+// ============================================================
+// GROUND
+// ============================================================
+const groundGeo = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE);
+const groundMat = new THREE.MeshStandardMaterial({
+    color: 0x1a2a1a,
+    roughness: 0.9,
+    metalness: 0.0
+});
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.set(0, -0.5, 0);
+ground.receiveShadow = true;
+scene.add(ground);
 
-        // ============================================================
-        // DECORATIONS
-        // ============================================================
-        function createTree(x, z) {
-            const group = new THREE.Group();
+// Grid
+const gridHelper = new THREE.GridHelper(WORLD_SIZE, 50, 0x2a2a4e, 0x1a1a3e);
+gridHelper.position.y = -0.4;
+scene.add(gridHelper);
 
-            const trunkGeo = new THREE.CylinderGeometry(0.3, 0.5, 2, 6);
-            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3728, roughness: 0.9 });
-            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-            trunk.position.y = 1;
-            trunk.castShadow = true;
-            group.add(trunk);
+// ============================================================
+// GENERATE TERRAIN
+// ============================================================
+function generateTerrain() {
+    // Mountains - simple hills
+    for (let i = 0; i < 20; i++) {
+        const x = (Math.random() - 0.5) * WORLD_SIZE * 0.7;
+        const z = (Math.random() - 0.5) * WORLD_SIZE * 0.7;
+        const r = 20 + Math.random() * 40;
+        const h = 5 + Math.random() * 15;
+        const hill = new THREE.Mesh(
+            new THREE.CylinderGeometry(r * 0.7, r, h, 12),
+            new THREE.MeshStandardMaterial({ color: 0x2a3a2a, roughness: 0.9 })
+        );
+        hill.position.set(x, h/2 - 0.5, z);
+        hill.castShadow = true;
+        hill.receiveShadow = true;
+        scene.add(hill);
+        world.trees.push({ type: 'hill', mesh: hill, x, z });
+    }
 
-            const leafMat = new THREE.MeshStandardMaterial({
-                color: new THREE.Color().setHSL(0.3 + Math.random() * 0.1, 0.6, 0.3 + Math.random() * 0.2),
-                roughness: 0.8
+    // Lakes
+    for (let i = 0; i < 5; i++) {
+        const x = (Math.random() - 0.5) * WORLD_SIZE * 0.6;
+        const z = (Math.random() - 0.5) * WORLD_SIZE * 0.6;
+        const r = 15 + Math.random() * 30;
+        const lake = new THREE.Mesh(
+            new THREE.CircleGeometry(r, 16),
+            new THREE.MeshStandardMaterial({
+                color: 0x1a3a5a,
+                roughness: 0.1,
+                metalness: 0.3,
+                transparent: true,
+                opacity: 0.7
+            })
+        );
+        lake.rotation.x = -Math.PI / 2;
+        lake.position.set(x, -0.3, z);
+        scene.add(lake);
+    }
+}
+generateTerrain();
+
+// ============================================================
+// BUILDING SYSTEM
+// ============================================================
+const buildingTypes = [
+    { name: 'Nhà cấp 4', w: 5, h: 3, d: 4, color: 0x8B7355 },
+    { name: 'Nhà tầng', w: 6, h: 6, d: 5, color: 0x6B5B3E },
+    { name: 'Biệt thự', w: 8, h: 4, d: 7, color: 0x9B8B6E },
+    { name: 'Chung cư', w: 10, h: 12, d: 8, color: 0x7B6B4E },
+    { name: 'Văn phòng', w: 8, h: 8, d: 6, color: 0x5B7B8B },
+    { name: 'Khách sạn', w: 9, h: 10, d: 7, color: 0x8B7B5B },
+    { name: 'Nhà hàng', w: 7, h: 4, d: 5, color: 0x7B5B3E },
+    { name: 'Quán cà phê', w: 5, h: 3, d: 4, color: 0x6B4B2E },
+    { name: 'Siêu thị', w: 12, h: 6, d: 8, color: 0x4B7B8B },
+    { name: 'Bệnh viện', w: 10, h: 8, d: 7, color: 0x8B8B7B },
+    { name: 'Trường học', w: 12, h: 5, d: 8, color: 0x7B8B6B },
+    { name: 'Ngân hàng', w: 8, h: 6, d: 6, color: 0x8B8B5B },
+    { name: 'Đồn công an', w: 7, h: 5, d: 6, color: 0x5B6B7B },
+    { name: 'Trạm cứu hỏa', w: 8, h: 5, d: 7, color: 0x7B5B5B },
+    { name: 'Gara', w: 6, h: 3, d: 5, color: 0x6B6B6B },
+    { name: 'Nhà kho', w: 8, h: 4, d: 6, color: 0x5B5B5B }
+];
+
+function createBuilding(type, x, z) {
+    const building = {
+        id: ++world.buildingIdCounter,
+        type: type,
+        name: type.name,
+        x: x,
+        z: z,
+        residents: [],
+        owner: null,
+        doors: [],
+        windows: [],
+        rooms: [],
+        furniture: []
+    };
+
+    const w = type.w + (Math.random() - 0.5) * 2;
+    const h = type.h + (Math.random() - 0.5) * 1;
+    const d = type.d + (Math.random() - 0.5) * 2;
+    const color = type.color + Math.floor(Math.random() * 0x222222);
+
+    const group = new THREE.Group();
+
+    // Main body
+    const box = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 })
+    );
+    box.position.y = h/2;
+    box.castShadow = true;
+    box.receiveShadow = true;
+    group.add(box);
+
+    // Roof
+    const roof = new THREE.Mesh(
+        new THREE.ConeGeometry(Math.max(w, d) * 0.6, 1.5, 4),
+        new THREE.MeshStandardMaterial({ color: 0x4a2a1a, roughness: 0.9 })
+    );
+    roof.position.y = h + 0.75;
+    roof.rotation.y = Math.PI / 4;
+    roof.castShadow = true;
+    group.add(roof);
+
+    // Windows (small squares on walls)
+    const winMat = new THREE.MeshStandardMaterial({
+        color: 0x4a8a9a,
+        emissive: 0x1a3a4a,
+        emissiveIntensity: 0.2,
+        transparent: true,
+        opacity: 0.6
+    });
+    for (let i = 0; i < 4; i++) {
+        const win = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.8), winMat);
+        const side = i % 4;
+        const offset = (i < 2) ? 1 : -1;
+        if (side === 0) { win.position.set(offset * w/2 * 0.6, h * 0.6, 0); win.rotation.y = Math.PI/2; }
+        else if (side === 1) { win.position.set(0, h * 0.6, offset * d/2 * 0.6); }
+        else if (side === 2) { win.position.set(offset * w/2 * 0.6, h * 0.6, 0); win.rotation.y = -Math.PI/2; }
+        else { win.position.set(0, h * 0.6, offset * d/2 * 0.6); win.rotation.y = Math.PI; }
+        group.add(win);
+        building.windows.push({ mesh: win });
+    }
+
+    // Door
+    const doorMat = new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 0.9 });
+    const door = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.5), doorMat);
+    door.position.set(0, 0.75, d/2 + 0.01);
+    group.add(door);
+    building.doors.push({ mesh: door, open: false });
+
+    group.position.set(x, 0, z);
+    scene.add(group);
+
+    building.mesh = group;
+    world.buildings.push(building);
+
+    // Furniture inside
+    if (Math.random() > 0.5) {
+        const furnitureTypes = ['bàn', 'ghế', 'giường', 'tủ', 'kệ'];
+        for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) {
+            const fType = furnitureTypes[Math.floor(Math.random() * furnitureTypes.length)];
+            const fSize = 0.3 + Math.random() * 0.4;
+            const fMat = new THREE.MeshStandardMaterial({
+                color: new THREE.Color().setHSL(0.08 + Math.random() * 0.05, 0.5, 0.3 + Math.random() * 0.2),
+                roughness: 0.7
             });
-            for (let i = 0; i < 3; i++) {
-                const size = 1.5 - i * 0.3;
-                const leaf = new THREE.Mesh(
-                    new THREE.SphereGeometry(size, 6, 6),
-                    leafMat
-                );
-                leaf.position.y = 2.5 + i * 0.8;
-                leaf.position.x = (Math.random() - 0.5) * 0.5;
-                leaf.position.z = (Math.random() - 0.5) * 0.5;
-                leaf.castShadow = true;
-                group.add(leaf);
-            }
-
-            group.position.set(x, 0, z);
-            const scale = 0.8 + Math.random() * 0.6;
-            group.scale.set(scale, scale, scale);
-            group.rotation.y = Math.random() * Math.PI * 2;
-
-            return group;
-        }
-
-        function createBuilding(x, z, color = 0x2a2a4e) {
-            const group = new THREE.Group();
-
-            const height = 2 + Math.random() * 4;
-            const width = 2 + Math.random() * 3;
-            const depth = 2 + Math.random() * 3;
-
-            const box = new THREE.Mesh(
-                new THREE.BoxGeometry(width, height, depth),
-                new THREE.MeshStandardMaterial({
-                    color: color,
-                    roughness: 0.7,
-                    metalness: 0.1
-                })
+            const f = new THREE.Mesh(new THREE.BoxGeometry(fSize, fSize * 0.6, fSize), fMat);
+            f.position.set(
+                (Math.random() - 0.5) * w * 0.5,
+                fSize * 0.3,
+                (Math.random() - 0.5) * d * 0.5
             );
-            box.position.y = height / 2;
-            box.castShadow = true;
-            box.receiveShadow = true;
-            group.add(box);
-
-            const roof = new THREE.Mesh(
-                new THREE.ConeGeometry(Math.max(width, depth) * 0.7, 1.5, 4),
-                new THREE.MeshStandardMaterial({
-                    color: 0x4a2a1a,
-                    roughness: 0.9
-                })
-            );
-            roof.position.y = height + 0.75;
-            roof.rotation.y = Math.PI / 4;
-            roof.castShadow = true;
-            group.add(roof);
-
-            group.position.set(x, 0, z);
-            group.rotation.y = Math.random() * Math.PI * 2;
-
-            return group;
+            f.castShadow = true;
+            group.add(f);
+            building.furniture.push({ mesh: f, type: fType });
         }
+    }
 
-        function generateDecorations() {
-            for (let i = 0; i < 80; i++) {
-                const x = (Math.random() - 0.5) * 350;
-                const z = (Math.random() - 0.5) * 350;
-                if (Math.abs(x) < 20 && Math.abs(z) < 20) continue;
-                const tree = createTree(x, z);
-                scene.add(tree);
-            }
+    return building;
+}
 
-            const buildingColors = [0x2a2a4e, 0x3a2a4e, 0x2a3a4e, 0x4a2a3a];
-            for (let i = 0; i < 20; i++) {
-                const x = (Math.random() - 0.5) * 200;
-                const z = (Math.random() - 0.5) * 200;
-                if (Math.abs(x) < 30 && Math.abs(z) < 30) continue;
-                const color = buildingColors[Math.floor(Math.random() * buildingColors.length)];
-                const building = createBuilding(x, z, color);
-                scene.add(building);
-            }
+function generateCity() {
+    const spacing = 15;
+    const citySize = 20;
+    const types = buildingTypes;
+
+    // Grid layout with random variation
+    for (let i = -citySize/2; i < citySize/2; i++) {
+        for (let j = -citySize/2; j < citySize/2; j++) {
+            if (Math.random() > 0.3) continue;
+            const type = types[Math.floor(Math.random() * types.length)];
+            const x = i * spacing + (Math.random() - 0.5) * 4;
+            const z = j * spacing + (Math.random() - 0.5) * 4;
+            // Skip center area
+            if (Math.abs(x) < 20 && Math.abs(z) < 20) continue;
+            createBuilding(type, x, z);
         }
-        generateDecorations();
+    }
+}
+generateCity();
 
-        // ============================================================
-        // NPC SYSTEM
-        // ============================================================
-        const npcMeshes = new Map();
+// ============================================================
+// ROADS
+// ============================================================
+function createRoads() {
+    const roadMat = new THREE.MeshStandardMaterial({
+        color: 0x2a2a2a,
+        roughness: 0.9,
+        metalness: 0.1
+    });
 
-        function generateName() {
-            const first = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Vũ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ'];
-            const middle = ['Văn', 'Thị', 'Đức', 'Minh', 'Hữu', 'Kim', 'Xuân', 'Hải', 'Quang', 'Ngọc'];
-            const last = ['An', 'Bình', 'Cường', 'Dung', 'Hạnh', 'Huy', 'Lan', 'Mai', 'Nam', 'Phúc'];
-            return `${first[Math.floor(Math.random()*first.length)]} ${middle[Math.floor(Math.random()*middle.length)]} ${last[Math.floor(Math.random()*last.length)]}`;
+    // Main roads (grid)
+    for (let i = -5; i <= 5; i++) {
+        const pos = i * 30;
+        // Horizontal
+        const hRoad = new THREE.Mesh(new THREE.PlaneGeometry(WORLD_SIZE, 2), roadMat);
+        hRoad.rotation.x = -Math.PI / 2;
+        hRoad.position.set(0, -0.45, pos);
+        hRoad.receiveShadow = true;
+        scene.add(hRoad);
+        world.roads.push(hRoad);
+
+        // Vertical
+        const vRoad = new THREE.Mesh(new THREE.PlaneGeometry(2, WORLD_SIZE), roadMat);
+        vRoad.rotation.x = -Math.PI / 2;
+        vRoad.position.set(pos, -0.45, 0);
+        vRoad.receiveShadow = true;
+        scene.add(vRoad);
+        world.roads.push(vRoad);
+    }
+
+    // Sidewalks (lighter strips)
+    const sideMat = new THREE.MeshStandardMaterial({
+        color: 0x3a3a3a,
+        roughness: 0.9
+    });
+    for (let i = -5; i <= 5; i++) {
+        const pos = i * 30;
+        for (let side = -1; side <= 1; side += 2) {
+            const s = new THREE.Mesh(new THREE.PlaneGeometry(WORLD_SIZE, 1), sideMat);
+            s.rotation.x = -Math.PI / 2;
+            s.position.set(0, -0.43, pos + side * 1.8);
+            scene.add(s);
         }
-
-        function createNPC(name) {
-            const id = ++world.npcIdCounter;
-            const npc = {
-                id: id,
-                name: name || generateName(),
-                gender: Math.random() > 0.5 ? 'Nam' : 'Nữ',
-                age: 18 + Math.floor(Math.random() * 42),
-                profession: ['Nông dân', 'Công nhân', 'Giáo viên', 'Bác sĩ', 'Kỹ sư',
-                    'Thương nhân', 'Nghệ sĩ', 'Chiến binh', 'Nhà khoa học'
-                ][Math.floor(Math.random() * 9)],
-                position: {
-                    x: (Math.random() - 0.5) * 160,
-                    z: (Math.random() - 0.5) * 160
-                },
-                targetX: 0,
-                targetZ: 0,
-                emotion: ['Vui vẻ', 'Bình thường', 'Tức giận', 'Sợ hãi', 'Mệt mỏi', 'Cô đơn', 'Lo lắng'][
-                    Math.floor(Math.random() * 7)
-                ],
-                health: 70 + Math.random() * 30,
-                energy: 50 + Math.random() * 50,
-                hunger: 30 + Math.random() * 40,
-                thirst: 30 + Math.random() * 40,
-                money: 100 + Math.random() * 4900,
-                isAlive: true,
-                speed: 0.3 + Math.random() * 0.4,
-                action: 'Đứng yên',
-                actionTimer: 0
-            };
-
-            npc.targetX = (Math.random() - 0.5) * 160;
-            npc.targetZ = (Math.random() - 0.5) * 160;
-
-            const color = new THREE.Color().setHSL(0.6 + Math.random() * 0.3, 0.7, 0.5);
-            const group = new THREE.Group();
-
-            // Body
-            const bodyGeo = new THREE.SphereGeometry(0.8, 8, 8);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.6, metalness: 0.1 });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.position.y = 1.2;
-            body.castShadow = true;
-            group.add(body);
-
-            // Head
-            const headGeo = new THREE.SphereGeometry(0.5, 8, 8);
-            const headMat = new THREE.MeshStandardMaterial({
-                color: new THREE.Color().setHSL(0.08, 0.3, 0.7),
-                roughness: 0.8
-            });
-            const head = new THREE.Mesh(headGeo, headMat);
-            head.position.y = 2.0;
-            head.castShadow = true;
-            group.add(head);
-
-            // Hat
-            const hatGeo = new THREE.ConeGeometry(0.7, 0.4, 6);
-            const hatMat = new THREE.MeshStandardMaterial({
-                color: new THREE.Color().setHSL(0.6 + Math.random() * 0.2, 0.8, 0.3),
-                roughness: 0.9
-            });
-            const hat = new THREE.Mesh(hatGeo, hatMat);
-            hat.position.y = 2.4;
-            group.add(hat);
-
-            // Eyes
-            const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-            const pupilMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-            for (let side = -1; side <= 1; side += 2) {
-                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 6), eyeMat);
-                eye.position.set(side * 0.2, 2.05, 0.45);
-                group.add(eye);
-
-                const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 6), pupilMat);
-                pupil.position.set(side * 0.22, 2.05, 0.5);
-                group.add(pupil);
-            }
-
-            // Label
-            const labelDiv = document.createElement('div');
-            labelDiv.textContent = name;
-            labelDiv.style.color = '#c8d6e5';
-            labelDiv.style.fontSize = '10px';
-            labelDiv.style.fontWeight = '600';
-            labelDiv.style.textShadow = '0 0 10px rgba(0,0,0,0.8)';
-            labelDiv.style.background = 'rgba(0,0,0,0.5)';
-            labelDiv.style.padding = '2px 8px';
-            labelDiv.style.borderRadius = '10px';
-            labelDiv.style.border = '1px solid rgba(255,255,255,0.1)';
-            labelDiv.style.backdropFilter = 'blur(4px)';
-            labelDiv.style.pointerEvents = 'none';
-            labelDiv.style.whiteSpace = 'nowrap';
-
-            const label = new CSS2DObject(labelDiv);
-            label.position.set(0, 2.8, 0);
-            group.add(label);
-
-            npc.mesh = group;
-            npc.label = label;
-            npc.bodyMat = bodyMat;
-
-            group.position.set(npc.position.x, 0, npc.position.z);
-            group.userData.npcId = id;
-
-            scene.add(group);
-            npcMeshes.set(id, group);
-
-            return npc;
+        for (let side = -1; side <= 1; side += 2) {
+            const s = new THREE.Mesh(new THREE.PlaneGeometry(1, WORLD_SIZE), sideMat);
+            s.rotation.x = -Math.PI / 2;
+            s.position.set(pos + side * 1.8, -0.43, 0);
+            scene.add(s);
         }
+    }
+}
+createRoads();
 
-        function createInitialNPCs(count) {
-            for (let i = 0; i < count; i++) {
-                const npc = createNPC();
-                world.npcs.push(npc);
-            }
-            updateUI();
+// ============================================================
+// TREES
+// ============================================================
+function createTree(x, z) {
+    const group = new THREE.Group();
+    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3728, roughness: 0.9 });
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 2, 6), trunkMat);
+    trunk.position.y = 1;
+    trunk.castShadow = true;
+    group.add(trunk);
+
+    const leafMat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color().setHSL(0.3 + Math.random() * 0.1, 0.6, 0.3 + Math.random() * 0.2),
+        roughness: 0.8
+    });
+    for (let i = 0; i < 3; i++) {
+        const size = 1.5 - i * 0.3;
+        const leaf = new THREE.Mesh(new THREE.SphereGeometry(size, 6, 6), leafMat);
+        leaf.position.y = 2.5 + i * 0.8;
+        leaf.position.x = (Math.random() - 0.5) * 0.5;
+        leaf.position.z = (Math.random() - 0.5) * 0.5;
+        leaf.castShadow = true;
+        group.add(leaf);
+    }
+
+    const scale = 0.8 + Math.random() * 0.6;
+    group.scale.set(scale, scale, scale);
+    group.position.set(x, 0, z);
+    group.rotation.y = Math.random() * Math.PI * 2;
+    scene.add(group);
+    world.trees.push(group);
+    return group;
+}
+
+function generateForest() {
+    for (let i = 0; i < 200; i++) {
+        const x = (Math.random() - 0.5) * WORLD_SIZE * 0.8;
+        const z = (Math.random() - 0.5) * WORLD_SIZE * 0.8;
+        // Skip city area
+        if (Math.abs(x) < 100 && Math.abs(z) < 100) continue;
+        // Skip buildings
+        let skip = false;
+        for (const b of world.buildings) {
+            if (Math.abs(b.x - x) < 10 && Math.abs(b.z - z) < 10) { skip = true; break; }
         }
+        if (!skip) createTree(x, z);
+    }
+}
+generateForest();
 
-        // ============================================================
-        // NPC AI
-        // ============================================================
-        function updateNPC(npc) {
-            if (!npc.isAlive) return;
+// ============================================================
+// NPC SYSTEM
+// ============================================================
+const npcMeshes = new Map();
 
-            npc.hunger += 0.02 * world.speed;
-            npc.thirst += 0.02 * world.speed;
-            npc.energy -= 0.01 * world.speed;
+function generateName() {
+    const first = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Vũ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ'];
+    const middle = ['Văn', 'Thị', 'Đức', 'Minh', 'Hữu', 'Kim', 'Xuân', 'Hải', 'Quang', 'Ngọc'];
+    const last = ['An', 'Bình', 'Cường', 'Dung', 'Hạnh', 'Huy', 'Lan', 'Mai', 'Nam', 'Phúc'];
+    return `${first[Math.floor(Math.random()*first.length)]} ${middle[Math.floor(Math.random()*middle.length)]} ${last[Math.floor(Math.random()*last.length)]}`;
+}
 
-            npc.hunger = Math.min(100, Math.max(0, npc.hunger));
-            npc.thirst = Math.min(100, Math.max(0, npc.thirst));
-            npc.energy = Math.min(100, Math.max(0, npc.energy));
+function createNPC(name) {
+    const id = ++world.npcIdCounter;
+    const npc = {
+        id, name: name || generateName(),
+        gender: Math.random() > 0.5 ? 'Nam' : 'Nữ',
+        age: 18 + Math.floor(Math.random() * 42),
+        profession: ['Nông dân','Công nhân','Giáo viên','Bác sĩ','Kỹ sư','Thương nhân','Nghệ sĩ','Chiến binh','Nhà khoa học'][Math.floor(Math.random()*9)],
+        position: { x: (Math.random()-0.5)*300, z: (Math.random()-0.5)*300 },
+        targetX: 0, targetZ: 0,
+        emotion: ['Vui vẻ','Bình thường','Tức giận','Sợ hãi','Mệt mỏi','Cô đơn','Lo lắng'][Math.floor(Math.random()*7)],
+        health: 70+Math.random()*30, energy: 50+Math.random()*50,
+        hunger: 30+Math.random()*40, thirst: 30+Math.random()*40,
+        sleepiness: 20+Math.random()*30, happiness: 50+Math.random()*50,
+        stress: 20+Math.random()*30, money: 100+Math.random()*4900,
+        isAlive: true, speed: 0.3+Math.random()*0.4,
+        action: 'Đứng yên', actionTimer: 0,
+        family: [], friends: [], enemies: [],
+        skills: { 'Nông nghiệp': 0, 'Xây dựng': 0, 'Nấu ăn': 0, 'Giao tiếp': 0, 'Chiến đấu': 0 },
+        schedule: {
+            wake: 6, breakfast: 7, work: 8, lunch: 12,
+            workEnd: 17, shopping: 18, home: 19, relax: 20, sleep: 22
+        },
+        memory: []
+    };
 
-            if (npc.hunger > 80) {
-                npc.action = 'Tìm thức ăn';
-                npc.hunger = Math.max(0, npc.hunger - 20);
-                npc.emotion = 'Tức giận';
-            } else if (npc.thirst > 80) {
-                npc.action = 'Tìm nước uống';
-                npc.thirst = Math.max(0, npc.thirst - 20);
-                npc.emotion = 'Khát';
-            } else if (npc.energy < 20) {
-                npc.action = 'Nghỉ ngơi';
-                npc.energy = Math.min(100, npc.energy + 10);
-                npc.emotion = 'Mệt mỏi';
-            } else {
-                const actions = ['Đi dạo', 'Làm việc', 'Trò chuyện', 'Quan sát', 'Đứng yên'];
-                if (npc.actionTimer <= 0) {
-                    npc.action = actions[Math.floor(Math.random() * actions.length)];
-                    npc.actionTimer = 50 + Math.random() * 100;
-                    npc.targetX = (Math.random() - 0.5) * 160;
-                    npc.targetZ = (Math.random() - 0.5) * 160;
-                    const emotions = ['Vui vẻ', 'Bình thường', 'Tò mò', 'Hào hứng', 'Thư thái'];
-                    npc.emotion = emotions[Math.floor(Math.random() * emotions.length)];
-                }
-                npc.actionTimer -= world.speed;
-            }
+    npc.targetX = (Math.random()-0.5)*300;
+    npc.targetZ = (Math.random()-0.5)*300;
 
-            // Movement
-            const dx = npc.targetX - npc.position.x;
-            const dz = npc.targetZ - npc.position.z;
-            const dist = Math.sqrt(dx * dx + dz * dz);
+    const color = new THREE.Color().setHSL(0.6+Math.random()*0.3, 0.7, 0.5);
+    const group = new THREE.Group();
 
-            if (dist > 1) {
-                const speed = npc.speed * world.speed * 0.5;
-                npc.position.x += (dx / dist) * speed;
-                npc.position.z += (dz / dist) * speed;
+    // Body
+    const bodyMat = new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.1 });
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 8), bodyMat);
+    body.position.y = 1.2;
+    body.castShadow = true;
+    group.add(body);
 
-                // Clamp position
-                const limit = 180;
-                npc.position.x = Math.max(-limit, Math.min(limit, npc.position.x));
-                npc.position.z = Math.max(-limit, Math.min(limit, npc.position.z));
+    // Head
+    const headMat = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(0.08, 0.3, 0.7), roughness: 0.8 });
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.45, 8, 8), headMat);
+    head.position.y = 2.0;
+    head.castShadow = true;
+    group.add(head);
 
-                if (npc.mesh) {
-                    const angle = Math.atan2(dx, dz);
-                    npc.mesh.rotation.y = angle;
-                }
-            }
+    // Hat
+    const hatMat = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(0.6+Math.random()*0.2, 0.8, 0.3), roughness: 0.9 });
+    const hat = new THREE.Mesh(new THREE.ConeGeometry(0.6, 0.4, 6), hatMat);
+    hat.position.y = 2.4;
+    group.add(hat);
+
+    // Eyes
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const pupilMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+    for (let side = -1; side <= 1; side += 2) {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), eyeMat);
+        eye.position.set(side*0.18, 2.05, 0.4);
+        group.add(eye);
+        const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), pupilMat);
+        pupil.position.set(side*0.2, 2.05, 0.45);
+        group.add(pupil);
+    }
+
+    // Arms
+    const armMat = new THREE.MeshStandardMaterial({ color, roughness: 0.6 });
+    for (let side = -1; side <= 1; side += 2) {
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.8, 4), armMat);
+        arm.position.set(side*0.8, 1.0, 0);
+        arm.rotation.z = side * 0.3;
+        group.add(arm);
+    }
+
+    // Legs
+    const legMat = new THREE.MeshStandardMaterial({ color: 0x2a2a3a, roughness: 0.8 });
+    for (let side = -1; side <= 1; side += 2) {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.7, 4), legMat);
+        leg.position.set(side*0.3, 0.35, 0);
+        group.add(leg);
+    }
+
+    // Label
+    const labelDiv = document.createElement('div');
+    labelDiv.textContent = name;
+    labelDiv.style.cssText = 'color:#c8d6e5;font-size:10px;font-weight:600;text-shadow:0 0 10px rgba(0,0,0,0.8);background:rgba(0,0,0,0.5);padding:2px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(4px);pointer-events:none;white-space:nowrap';
+    const label = new CSS2DObject(labelDiv);
+    label.position.set(0, 3.0, 0);
+    group.add(label);
+
+    npc.mesh = group;
+    npc.label = label;
+    npc.bodyMat = bodyMat;
+    npc.body = body;
+
+    group.position.set(npc.position.x, 0, npc.position.z);
+    group.userData.npcId = id;
+    scene.add(group);
+    npcMeshes.set(id, group);
+
+    return npc;
+}
+
+function createInitialNPCs(count) {
+    for (let i = 0; i < count; i++) {
+        const npc = createNPC();
+        world.npcs.push(npc);
+        // Assign to random building
+        if (world.buildings.length > 0) {
+            const b = world.buildings[Math.floor(Math.random() * world.buildings.length)];
+            b.residents.push(npc.id);
+            npc.home = b;
+        }
+    }
+    updateUI();
+}
+
+// ============================================================
+// NPC AI
+// ============================================================
+function updateNPC(npc) {
+    if (!npc.isAlive) return;
+
+    // Update needs based on schedule
+    const hour = world.hours;
+    const schedule = npc.schedule;
+
+    // Time-based actions
+    if (hour >= schedule.wake && hour < schedule.breakfast && npc.action !== 'Thức dậy') {
+        npc.action = 'Thức dậy';
+        npc.energy = Math.min(100, npc.energy + 5);
+    } else if (hour >= schedule.breakfast && hour < schedule.work && npc.action !== 'Ăn sáng') {
+        npc.action = 'Ăn sáng';
+        npc.hunger = Math.max(0, npc.hunger - 15);
+    } else if (hour >= schedule.work && hour < schedule.lunch && npc.action !== 'Đi làm') {
+        npc.action = 'Đi làm';
+        // Move towards workplace (building)
+        if (npc.home) {
+            npc.targetX = npc.home.x + (Math.random() - 0.5) * 5;
+            npc.targetZ = npc.home.z + (Math.random() - 0.5) * 5;
+        }
+    } else if (hour >= schedule.lunch && hour < schedule.workEnd && npc.action !== 'Ăn trưa') {
+        npc.action = 'Ăn trưa';
+        npc.hunger = Math.max(0, npc.hunger - 10);
+    } else if (hour >= schedule.workEnd && hour < schedule.shopping && npc.action !== 'Tan làm') {
+        npc.action = 'Tan làm';
+        npc.money += 10 + Math.random() * 20; // Salary
+    } else if (hour >= schedule.shopping && hour < schedule.home && npc.action !== 'Mua đồ') {
+        npc.action = 'Mua đồ';
+        if (Math.random() < 0.1) {
+            npc.money -= 5 + Math.random() * 15;
+            npc.happiness = Math.min(100, npc.happiness + 2);
+        }
+    } else if (hour >= schedule.home && hour < schedule.relax && npc.action !== 'Về nhà') {
+        npc.action = 'Về nhà';
+        if (npc.home) {
+            npc.targetX = npc.home.x + (Math.random() - 0.5) * 3;
+            npc.targetZ = npc.home.z + (Math.random() - 0.5) * 3;
+        }
+    } else if (hour >= schedule.relax && hour < schedule.sleep && npc.action !== 'Giải trí') {
+        npc.action = 'Giải trí';
+        npc.happiness = Math.min(100, npc.happiness + 3);
+        npc.stress = Math.max(0, npc.stress - 2);
+    } else if (hour >= schedule.sleep || hour < schedule.wake) {
+        npc.action = 'Ngủ';
+        npc.sleepiness = Math.max(0, npc.sleepiness - 10);
+        npc.energy = Math.min(100, npc.energy + 8);
+    }
+
+    // Natural needs decay
+    npc.hunger += 0.02 * world.speed;
+    npc.thirst += 0.02 * world.speed;
+    npc.sleepiness += 0.015 * world.speed;
+    npc.energy -= 0.01 * world.speed;
+    npc.happiness -= 0.005 * world.speed;
+    npc.stress += 0.005 * world.speed;
+
+    // Clamp
+    npc.hunger = Math.min(100, Math.max(0, npc.hunger));
+    npc.thirst = Math.min(100, Math.max(0, npc.thirst));
+    npc.sleepiness = Math.min(100, Math.max(0, npc.sleepiness));
+    npc.energy = Math.min(100, Math.max(0, npc.energy));
+    npc.happiness = Math.min(100, Math.max(0, npc.happiness));
+    npc.stress = Math.min(100, Math.max(0, npc.stress));
+
+    // Health effects
+    if (npc.hunger > 80 || npc.thirst > 80) npc.health -= 0.05;
+    if (npc.sleepiness > 80) npc.health -= 0.03;
+    if (npc.happiness < 20) npc.health -= 0.02;
+    if (npc.stress > 80) npc.health -= 0.04;
+    npc.health = Math.min(100, Math.max(0, npc.health));
+
+    // Death
+    if (npc.health <= 0) {
+        npc.isAlive = false;
+        npc.action = 'Đã chết';
+        if (npc.mesh) {
+            npc.mesh.position.y = -0.5;
+            npc.mesh.rotation.x = Math.PI / 2;
+        }
+        return;
+    }
+
+    // Emotion based on state
+    if (npc.happiness > 70) npc.emotion = 'Vui vẻ';
+    else if (npc.happiness < 30) npc.emotion = 'Buồn bã';
+    else if (npc.stress > 70) npc.emotion = 'Căng thẳng';
+    else if (npc.hunger > 70) npc.emotion = 'Đói';
+    else if (npc.sleepiness > 70) npc.emotion = 'Mệt mỏi';
+    else if (npc.energy < 20) npc.emotion = 'Kiệt sức';
+    else npc.emotion = 'Bình thường';
+
+    // Movement
+    if (npc.action !== 'Ngủ' && npc.action !== 'Đứng yên') {
+        const dx = npc.targetX - npc.position.x;
+        const dz = npc.targetZ - npc.position.z;
+        const dist = Math.sqrt(dx*dx + dz*dz);
+
+        if (dist > 2) {
+            const speed = npc.speed * world.speed * (npc.energy / 100);
+            npc.position.x += (dx/dist) * speed;
+            npc.position.z += (dz/dist) * speed;
+
+            const limit = WORLD_SIZE/2 - 10;
+            npc.position.x = Math.max(-limit, Math.min(limit, npc.position.x));
+            npc.position.z = Math.max(-limit, Math.min(limit, npc.position.z));
 
             if (npc.mesh) {
-                npc.mesh.position.x = npc.position.x;
-                npc.mesh.position.z = npc.position.z;
-
-                const emotionColors = {
-                    'Vui vẻ': 0x4ade80,
-                    'Bình thường': 0x48dbfb,
-                    'Tức giận': 0xff6b6b,
-                    'Sợ hãi': 0xfacc15,
-                    'Mệt mỏi': 0x8395a7,
-                    'Cô đơn': 0xa29bfe,
-                    'Lo lắng': 0xfd79a8,
-                    'Hào hứng': 0x00d2d3,
-                    'Tò mò': 0x0984e3,
-                    'Thư thái': 0x00b894,
-                    'Khát': 0x4a9eff
-                };
-                const color = emotionColors[npc.emotion] || 0x48dbfb;
-                if (npc.bodyMat) {
-                    npc.bodyMat.color.setHex(color);
-                }
-
-                // Bob animation
-                const bob = Math.sin(Date.now() / 500 + npc.id) * 0.05;
+                const angle = Math.atan2(dx, dz);
+                npc.mesh.rotation.y = angle;
+                // Walking animation - slight bob
+                const bob = Math.sin(Date.now() / 300 + npc.id) * 0.06;
                 npc.mesh.position.y = Math.abs(bob);
             }
-
-            if (npc.label) {
-                const distToCam = camera.position.distanceTo(npc.mesh.position);
-                npc.label.element.style.display = distToCam < 80 ? 'block' : 'none';
+        } else {
+            // Random new target if idling too long
+            if (Math.random() < 0.001 * world.speed) {
+                npc.targetX = (Math.random() - 0.5) * 300;
+                npc.targetZ = (Math.random() - 0.5) * 300;
             }
         }
+    }
 
-        // ============================================================
-        // WORLD UPDATE
-        // ============================================================
-        function updateWorld() {
-            if (world.isPaused) return;
+    // Update mesh
+    if (npc.mesh) {
+        npc.mesh.position.x = npc.position.x;
+        npc.mesh.position.z = npc.position.z;
 
-            world.tickCount++;
+        // Color based on emotion
+        const emoColors = {
+            'Vui vẻ': 0x4ade80, 'Buồn bã': 0x6366f1, 'Căng thẳng': 0xff6b6b,
+            'Đói': 0xfacc15, 'Mệt mỏi': 0x8395a7, 'Kiệt sức': 0x94a3b8,
+            'Bình thường': 0x48dbfb
+        };
+        const color = emoColors[npc.emotion] || 0x48dbfb;
+        if (npc.bodyMat) npc.bodyMat.color.setHex(color);
+    }
 
-            if (world.tickCount % 2 === 0) {
-                world.hours += 0.5;
-                if (world.hours >= 24) {
-                    world.hours = 0;
-                    world.days++;
-                    if (world.days >= 30) {
-                        world.days = 0;
-                        world.months++;
-                        if (world.months >= 12) {
-                            world.months = 0;
-                            world.years++;
-                        }
-                    }
+    // Label visibility
+    if (npc.label) {
+        const distToCam = camera.position.distanceTo(npc.mesh.position);
+        npc.label.element.style.display = distToCam < 100 ? 'block' : 'none';
+    }
+}
+
+// ============================================================
+// WORLD UPDATE
+// ============================================================
+function updateWorld() {
+    if (world.isPaused) return;
+    world.tickCount++;
+
+    // Time
+    if (world.tickCount % 3 === 0) {
+        world.hours += 0.05 * world.speed;
+        if (world.hours >= 24) {
+            world.hours = 0;
+            world.days++;
+            if (world.days >= CONFIG.monthLength) {
+                world.days = 0;
+                world.months++;
+                if (world.months >= CONFIG.yearLength) {
+                    world.months = 0;
+                    world.years++;
                 }
+                // Update season
+                const seasons = ['Xuân', 'Hạ', 'Thu', 'Đông'];
+                world.season = seasons[Math.floor(world.months / 3) % 4];
             }
+        }
+    }
 
-            if (world.tickCount % 60 === 0) {
-                const weathers = ['☀️ Nắng', '☁️ Mây', '🌧️ Mưa', '🌤️ Nắng nhẹ', '💨 Gió'];
-                world.weather = weathers[Math.floor(Math.random() * weathers.length)];
-                world.temperature = 20 + Math.random() * 15;
-                updateSceneLighting();
+    // Weather
+    if (world.tickCount % 120 === 0) {
+        const weathers = ['☀️ Nắng', '⛅ Mây', '🌧️ Mưa', '🌤️ Nắng nhẹ', '💨 Gió', '🌫️ Sương mù'];
+        world.weather = weathers[Math.floor(Math.random() * weathers.length)];
+        world.temperature = 20 + Math.random() * 15 - (world.season === 'Đông' ? 10 : 0);
+        updateLighting();
+    }
+
+    // NPCs
+    for (const npc of world.npcs) {
+        updateNPC(npc);
+    }
+
+    // Economy
+    world.economy += (Math.random() - 0.48) * 0.5;
+
+    // Update UI
+    updateUI();
+}
+
+function updateLighting() {
+    const hour = world.hours;
+    const isNight = hour < 5 || hour > 19;
+    const intensity = isNight ? 0.15 : 1.0;
+
+    sunLight.intensity = 1.2 * intensity;
+    ambientLight.intensity = 0.2 + 0.3 * intensity;
+
+    const skyColor = isNight ? 0x050510 : 0x1a1a3e;
+    scene.background = new THREE.Color(skyColor);
+    scene.fog = new THREE.Fog(skyColor, 200, 500);
+
+    // Sun position
+    const angle = (hour / 24) * Math.PI * 2;
+    sunLight.position.set(
+        Math.cos(angle) * 100,
+        50 + Math.sin(angle) * 70,
+        Math.sin(angle) * 100
+    );
+}
+
+// ============================================================
+// UI FUNCTIONS
+// ============================================================
+function updateUI() {
+    const alive = world.npcs.filter(n => n.isAlive);
+    const moving = alive.filter(n => n.action && ['Đi làm','Tan làm','Về nhà','Mua đồ'].includes(n.action));
+    const hungry = alive.filter(n => n.hunger > 70);
+    const tired = alive.filter(n => n.sleepiness > 70);
+
+    timeDisplay.textContent = `⏰ ${Math.floor(world.hours).toString().padStart(2,'0')}:00 - Ngày ${world.days+1}`;
+    weatherDisplay.textContent = `${world.weather} ${Math.round(world.temperature)}°C`;
+    npcCount.textContent = `👥 ${alive.length}`;
+
+    document.getElementById('s-total').textContent = alive.length;
+    document.getElementById('s-moving').textContent = moving.length;
+    document.getElementById('s-idle').textContent = alive.length - moving.length;
+    document.getElementById('s-hungry').textContent = hungry.length;
+    document.getElementById('s-tired').textContent = tired.length;
+    document.getElementById('s-buildings').textContent = world.buildings.length;
+    document.getElementById('s-roads').textContent = world.roads.length;
+
+    // NPC list
+    const list = document.getElementById('npc-list');
+    list.innerHTML = '';
+    for (const n of alive.slice(0, 15)) {
+        const item = document.createElement('div');
+        item.className = 'npc-item';
+        const emoji = { 'Vui vẻ':'😊', 'Buồn bã':'😢', 'Căng thẳng':'😰', 'Đói':'😫', 'Mệt mỏi':'😴', 'Kiệt sức':'😩', 'Bình thường':'😐' }[n.emotion] || '😐';
+        item.innerHTML = `<span>${n.name}</span><span>${emoji}</span>`;
+        item.onclick = () => showNPCInfo(n.id);
+        list.appendChild(item);
+    }
+}
+
+// ============================================================
+// NPC INFO
+// ============================================================
+function showNPCInfo(id) {
+    const npc = world.npcs.find(n => n.id === id);
+    if (!npc) return;
+
+    const modal = document.getElementById('npc-modal');
+    const info = document.getElementById('npc-info');
+
+    const family = npc.family.length > 0 ? npc.family.join(', ') : 'Chưa có';
+    info.innerHTML = `
+        <div class="modal-title">${npc.name}</div>
+        <div class="field"><span class="label">Giới tính</span><span class="value">${npc.gender}</span></div>
+        <div class="field"><span class="label">Tuổi</span><span class="value">${npc.age}</span></div>
+        <div class="field"><span class="label">Nghề nghiệp</span><span class="value highlight">${npc.profession}</span></div>
+        <div class="field"><span class="label">Cảm xúc</span><span class="value">${npc.emotion}</span></div>
+        <div class="field"><span class="label">Hành động</span><span class="value highlight">${npc.action}</span></div>
+        <div class="field"><span class="label">Sức khỏe</span><span class="value">${Math.round(npc.health)}%</span></div>
+        <div class="field"><span class="label">Năng lượng</span><span class="value">${Math.round(npc.energy)}%</span></div>
+        <div class="field"><span class="label">Đói</span><span class="value">${Math.round(npc.hunger)}%</span></div>
+        <div class="field"><span class="label">Hạnh phúc</span><span class="value">${Math.round(npc.happiness)}%</span></div>
+        <div class="field"><span class="label">Căng thẳng</span><span class="value">${Math.round(npc.stress)}%</span></div>
+        <div class="field"><span class="label">Tiền</span><span class="value">${Math.round(npc.money).toLocaleString()}đ</span></div>
+        <div class="field"><span class="label">Gia đình</span><span class="value">${family}</span></div>
+    `;
+    modal.classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('npc-modal').classList.remove('show');
+}
+
+// ============================================================
+// CONTROLS
+// ============================================================
+window.togglePause = function() {
+    world.isPaused = !world.isPaused;
+    pauseBtn.textContent = world.isPaused ? '▶️' : '⏸️';
+    pauseBtn.classList.toggle('active', world.isPaused);
+};
+
+window.setSpeed = function(speed) {
+    world.speed = speed;
+    document.querySelectorAll('#controls button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#controls button').forEach(b => {
+        if (b.textContent.includes(speed + 'x')) b.classList.add('active');
+    });
+};
+
+window.addRandomNPC = function() {
+    const npc = createNPC();
+    world.npcs.push(npc);
+    if (world.buildings.length > 0) {
+        const b = world.buildings[Math.floor(Math.random() * world.buildings.length)];
+        b.residents.push(npc.id);
+        npc.home = b;
+    }
+    updateUI();
+};
+
+window.toggleSidebar = function() {
+    sidebar.classList.toggle('show');
+};
+
+window.toggleCamera = function() {
+    const pos = camera.position;
+    if (pos.y > 80) {
+        camera.position.set(80, 60, 80);
+    } else if (pos.y > 40) {
+        camera.position.set(0, 20, 80);
+    } else {
+        camera.position.set(0, 150, 0.1);
+    }
+    controls.target.set(0, 0, 0);
+    controls.update();
+};
+
+// ============================================================
+// RAYCASTER - Click NPC
+// ============================================================
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+
+renderer.domElement.addEventListener('click', (event) => {
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(pointer, camera);
+
+    const meshes = [];
+    for (const [id, mesh] of npcMeshes) {
+        meshes.push(mesh);
+    }
+    // Also check buildings
+    for (const b of world.buildings) {
+        if (b.mesh) meshes.push(b.mesh);
+    }
+
+    const intersects = raycaster.intersectObjects(meshes, true);
+
+    if (intersects.length > 0) {
+        let npcId = null;
+        let obj = intersects[0].object;
+        while (obj) {
+            if (obj.userData && obj.userData.npcId) {
+                npcId = obj.userData.npcId;
+                break;
             }
-
-            for (const npc of world.npcs) {
-                updateNPC(npc);
-            }
-
-            updateUI();
+            obj = obj.parent;
         }
 
-        function updateSceneLighting() {
-            const hour = world.hours;
-            const isNight = hour < 5 || hour > 19;
-            const intensity = isNight ? 0.2 : 1.0;
-
-            sunLight.intensity = 1.2 * intensity;
-            ambientLight.intensity = 0.3 + 0.3 * intensity;
-
-            const skyColor = isNight ? 0x050510 : 0x0a0e17;
-            scene.background = new THREE.Color(skyColor);
-            scene.fog = new THREE.Fog(skyColor, 150, 300);
-        }
-
-        // ============================================================
-        // UI FUNCTIONS
-        // ============================================================
-        function updateUI() {
-            const alive = world.npcs.filter(n => n.isAlive);
-            const dead = world.npcs.filter(n => !n.isAlive);
-
-            timeDisplay.textContent =
-                `⏰ ${Math.floor(world.hours)}:00 - Ngày ${world.days+1}/${world.months+1}/${world.years+1}`;
-
-            weatherDisplay.textContent =
-                `${world.weather} ${Math.round(world.temperature)}°C`;
-
-            npcCount.textContent = `👥 ${alive.length}`;
-        }
-
-        // ============================================================
-        // NPC INFO
-        // ============================================================
-        function showNPCInfo(id) {
-            const npc = world.npcs.find(n => n.id === id);
-            if (!npc) return;
-
-            const modal = document.getElementById('npc-modal');
-            const info = document.getElementById('npc-info');
-
-            info.innerHTML = `
-                <div class="modal-title">${npc.name}</div>
-                <div class="field"><span class="label">Giới tính</span><span class="value">${npc.gender}</span></div>
-                <div class="field"><span class="label">Tuổi</span><span class="value">${npc.age}</span></div>
-                <div class="field"><span class="label">Nghề nghiệp</span><span class="value highlight">${npc.profession}</span></div>
-                <div class="field"><span class="label">Cảm xúc</span><span class="value">${npc.emotion}</span></div>
-                <div class="field"><span class="label">Sức khỏe</span><span class="value">${Math.round(npc.health)}%</span></div>
-                <div class="field"><span class="label">Năng lượng</span><span class="value">${Math.round(npc.energy)}%</span></div>
-                <div class="field"><span class="label">Đói</span><span class="value">${Math.round(npc.hunger)}%</span></div>
-                <div class="field"><span class="label">Khát</span><span class="value">${Math.round(npc.thirst)}%</span></div>
-                <div class="field"><span class="label">Tiền</span><span class="value">${Math.round(npc.money).toLocaleString()}đ</span></div>
-                <div class="field"><span class="label">Hành động</span><span class="value highlight">${npc.action}</span></div>
-            `;
-
-            modal.classList.add('show');
-        }
-
-        function closeModal() {
-            document.getElementById('npc-modal').classList.remove('show');
-        }
-
-        // ============================================================
-        // CONTROLS
-        // ============================================================
-        window.togglePause = function() {
-            world.isPaused = !world.isPaused;
-            pauseBtn.textContent = world.isPaused ? '▶️ Tiếp tục' : '⏸️ Tạm dừng';
-            pauseBtn.classList.toggle('active', world.isPaused);
-        };
-
-        window.setSpeed = function(speed) {
-            world.speed = speed;
-            document.querySelectorAll('#controls button').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('#controls button').forEach(b => {
-                if (b.textContent.includes(speed + 'x')) {
-                    b.classList.add('active');
-                }
-            });
-        };
-
-        window.addRandomNPC = function() {
-            const npc = createNPC();
-            world.npcs.push(npc);
-            updateUI();
-        };
-
-        window.toggleCamera = function() {
-            const pos = camera.position;
-            if (pos.y > 50) {
-                camera.position.set(60, 30, 60);
-            } else {
-                camera.position.set(0, 100, 0.1);
-            }
-            controls.target.set(0, 0, 0);
-            controls.update();
-        };
-
-        // ============================================================
-        // RAYCASTER - Click NPC
-        // ============================================================
-        const raycaster = new THREE.Raycaster();
-        const pointer = new THREE.Vector2();
-
-        renderer.domElement.addEventListener('click', (event) => {
-            const rect = renderer.domElement.getBoundingClientRect();
-            pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-            pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-            raycaster.setFromCamera(pointer, camera);
-
-            const meshes = [];
+        if (!npcId) {
             for (const [id, mesh] of npcMeshes) {
-                meshes.push(mesh);
-            }
-
-            const intersects = raycaster.intersectObjects(meshes, true);
-
-            if (intersects.length > 0) {
-                let npcId = null;
-                let obj = intersects[0].object;
-                while (obj) {
-                    if (obj.userData && obj.userData.npcId) {
-                        npcId = obj.userData.npcId;
-                        break;
-                    }
-                    obj = obj.parent;
-                }
-
-                if (!npcId) {
-                    for (const [id, mesh] of npcMeshes) {
-                        if (mesh === intersects[0].object || mesh.children.includes(intersects[0].object)) {
-                            npcId = id;
-                            break;
-                        }
-                    }
-                }
-
-                if (npcId) {
-                    const npc = world.npcs.find(n => n.id === npcId);
-                    if (npc && npc.isAlive) {
-                        showNPCInfo(npcId);
-                    }
+                if (mesh === intersects[0].object || mesh.children.includes(intersects[0].object)) {
+                    npcId = id;
+                    break;
                 }
             }
-        });
-
-        // ============================================================
-        // FPS COUNTER
-        // ============================================================
-        let frameCount = 0;
-        let lastFpsUpdate = Date.now();
-
-        // ============================================================
-        // RESIZE
-        // ============================================================
-        window.addEventListener('resize', () => {
-            const w = container.clientWidth;
-            const h = container.clientHeight;
-            camera.aspect = w / h;
-            camera.updateProjectionMatrix();
-            renderer.setSize(w, h);
-            labelRenderer.setSize(w, h);
-        });
-
-        // ============================================================
-        // ANIMATION LOOP
-        // ============================================================
-        function animate() {
-            requestAnimationFrame(animate);
-
-            updateWorld();
-
-            frameCount++;
-            const now = Date.now();
-            if (now - lastFpsUpdate > 1000) {
-                fpsDisplay.textContent = `⚡ ${frameCount} FPS`;
-                frameCount = 0;
-                lastFpsUpdate = now;
-            }
-
-            controls.update();
-            renderer.render(scene, camera);
-            labelRenderer.render(scene, camera);
         }
 
-        // ============================================================
-        // INIT
-        // ============================================================
-        console.log('🌍 Thế giới AI 3D');
-        console.log('📌 Click NPC → Xem thông tin');
-        console.log('📌 Scroll → Zoom');
-        console.log('📌 Kéo → Xoay');
-        console.log('📌 Space → Tạm dừng');
+        if (npcId) {
+            const npc = world.npcs.find(n => n.id === npcId);
+            if (npc && npc.isAlive) {
+                showNPCInfo(npcId);
+                return;
+            }
+        }
 
-        createInitialNPCs(30);
-        animate();
+        // Check if clicked a building
+        for (const b of world.buildings) {
+            if (b.mesh && (b.mesh === intersects[0].object || b.mesh.children.includes(intersects[0].object))) {
+                buildingInfo.textContent = `🏠 ${b.name} | Cư dân: ${b.residents.length}`;
+                buildingInfo.style.display = 'block';
+                setTimeout(() => { buildingInfo.style.display = 'none'; }, 3000);
+                break;
+            }
+        }
+    }
+});
 
-        window.world = world;
-        window.scene = scene;
-        window.camera = camera;
-        window.controls = controls;
+// ============================================================
+// FPS COUNTER
+// ============================================================
+let frameCount = 0, lastFpsUpdate = Date.now();
 
-        console.log('✅ Đã sẵn sàng!');
-    </script>
+// ============================================================
+// RESIZE
+// ============================================================
+window.addEventListener('resize', () => {
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+    labelRenderer.setSize(w, h);
+});
+
+// ============================================================
+// ANIMATION LOOP
+// ============================================================
+function animate() {
+    requestAnimationFrame(animate);
+    updateWorld();
+
+    frameCount++;
+    const now = Date.now();
+    if (now - lastFpsUpdate > 1000) {
+        fpsDisplay.textContent = `⚡ ${frameCount}`;
+        frameCount = 0;
+        lastFpsUpdate = now;
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+console.log('🌍 Thế giới AI 3D - Phiên bản hoàn chỉnh');
+console.log(`🏙️ Buildings: ${world.buildings.length}`);
+console.log(`👥 NPC: ${world.npcs.length}`);
+console.log('📌 Click NPC → Xem thông tin');
+console.log('📌 Scroll → Zoom');
+console.log('📌 Kéo → Xoay');
+
+createInitialNPCs(50);
+animate();
+
+window.world = world;
+window.scene = scene;
+window.camera = camera;
+window.controls = controls;
+
+console.log('✅ Đã sẵn sàng!');
+</script>
 </body>
 </html>
