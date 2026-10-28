@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZIP Web Extractor - Upload & Chạy Web</title>
+<title>ZIP Web Extractor - Safari Fixed</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,208 +13,92 @@
     min-height: 100vh;
     padding: 20px;
   }
-
-  /* ===== HEADER ===== */
-  .header {
-    text-align: center;
-    color: white;
-    margin-bottom: 30px;
-  }
+  .header { text-align: center; color: white; margin-bottom: 30px; }
   .header h1 { font-size: 2.2rem; margin-bottom: 8px; }
   .header p { opacity: 0.9; }
-
-  /* ===== TAB SWITCHER ===== */
-  .tabs {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
+  .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
   .tab-btn {
-    background: rgba(255,255,255,0.2);
-    color: white;
-    border: 2px solid rgba(255,255,255,0.4);
-    padding: 10px 24px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    transition: all 0.2s;
+    background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.4);
+    padding: 10px 24px; border-radius: 30px; cursor: pointer; font-size: 15px;
+    font-weight: 600; transition: all 0.2s;
   }
   .tab-btn:hover { background: rgba(255,255,255,0.3); }
   .tab-btn.active { background: white; color: #764ba2; border-color: white; }
-
-  /* ===== CONTAINER ===== */
   .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    overflow: hidden;
+    max-width: 1200px; margin: 0 auto; background: white;
+    border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;
   }
-
-  /* ===== TAB 1: UPLOAD ===== */
   #uploadTab { padding: 40px; }
   .drop-zone {
-    border: 3px dashed #667eea;
-    border-radius: 16px;
-    padding: 60px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    background: #f8f9ff;
+    border: 3px dashed #667eea; border-radius: 16px; padding: 60px 20px;
+    text-align: center; cursor: pointer; transition: all 0.3s; background: #f8f9ff;
   }
-  .drop-zone:hover, .drop-zone.dragover {
-    background: #eef1ff;
-    border-color: #764ba2;
-    transform: scale(1.01);
-  }
+  .drop-zone:hover, .drop-zone.dragover { background: #eef1ff; border-color: #764ba2; transform: scale(1.01); }
   .drop-zone .icon { font-size: 64px; margin-bottom: 16px; }
   .drop-zone h3 { color: #333; margin-bottom: 8px; font-size: 1.3rem; }
   .drop-zone p { color: #888; font-size: 14px; }
   .drop-zone input { display: none; }
-
   .file-info {
-    display: none;
-    margin-top: 20px;
-    padding: 16px;
-    background: #e8f5e9;
-    border-left: 4px solid #4CAF50;
-    border-radius: 8px;
+    display: none; margin-top: 20px; padding: 16px;
+    background: #e8f5e9; border-left: 4px solid #4CAF50; border-radius: 8px;
   }
   .file-info.show { display: block; }
   .file-info strong { color: #2e7d32; }
-
-  .btn-row {
-    display: flex;
-    gap: 12px;
-    margin-top: 20px;
-    justify-content: center;
-  }
+  .btn-row { display: flex; gap: 12px; margin-top: 20px; justify-content: center; }
   .btn {
-    padding: 12px 32px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
+    padding: 12px 32px; border: none; border-radius: 8px;
+    font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;
   }
-  .btn-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-  }
+  .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
   .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.4); }
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
   .btn-secondary { background: #eee; color: #555; }
   .btn-secondary:hover { background: #ddd; }
-
   .progress-bar {
-    display: none;
-    height: 8px;
-    background: #eee;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-top: 20px;
+    display: none; height: 8px; background: #eee;
+    border-radius: 4px; overflow: hidden; margin-top: 20px;
   }
   .progress-bar.show { display: block; }
   .progress-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-    transition: width 0.3s;
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.3s;
   }
-
-  .status {
-    margin-top: 16px;
-    text-align: center;
-    font-weight: 600;
-  }
+  .status { margin-top: 16px; text-align: center; font-weight: 600; }
   .status.success { color: #2e7d32; }
   .status.error { color: #c62828; }
-
-  /* ===== TAB 2: PREVIEW ===== */
   #previewTab { display: none; }
   #previewTab.active { display: block; }
   #uploadTab.hidden { display: none; }
-
   .preview-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 20px;
-    background: #2d2d2d;
-    color: white;
-    gap: 12px;
-    flex-wrap: wrap;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 20px; background: #2d2d2d; color: white; gap: 12px; flex-wrap: wrap;
   }
   .preview-toolbar .url-bar {
-    flex: 1;
-    min-width: 200px;
-    background: #1e1e1e;
-    padding: 8px 14px;
-    border-radius: 6px;
-    font-family: monospace;
-    font-size: 13px;
-    color: #aaa;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    flex: 1; min-width: 200px; background: #1e1e1e; padding: 8px 14px;
+    border-radius: 6px; font-family: monospace; font-size: 13px;
+    color: #aaa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .preview-toolbar button {
-    padding: 6px 14px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    background: #444;
-    color: white;
+    padding: 6px 14px; border: none; border-radius: 6px;
+    cursor: pointer; font-size: 13px; font-weight: 600; background: #444; color: white;
   }
   .preview-toolbar button:hover { background: #555; }
   .preview-toolbar button.danger { background: #e53935; }
-
-  .preview-frame-wrap {
-    position: relative;
-    height: 75vh;
-    min-height: 500px;
-    background: #f0f0f0;
-  }
-  #previewFrame {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: white;
-  }
-
+  .preview-frame-wrap { position: relative; height: 75vh; min-height: 500px; background: #f0f0f0; }
+  #previewFrame { width: 100%; height: 100%; border: none; background: white; }
   .empty-preview {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: #999;
-    text-align: center;
-    padding: 40px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; color: #999; text-align: center; padding: 40px;
   }
   .empty-preview .icon { font-size: 72px; margin-bottom: 16px; }
-
-  /* ===== FILE TREE ===== */
   .file-tree {
-    padding: 16px 20px;
-    background: #1e1e1e;
-    color: #ccc;
-    font-family: monospace;
-    font-size: 13px;
-    max-height: 200px;
-    overflow-y: auto;
-    display: none;
+    padding: 16px 20px; background: #1e1e1e; color: #ccc;
+    font-family: monospace; font-size: 13px; max-height: 200px;
+    overflow-y: auto; display: none;
   }
   .file-tree.show { display: block; }
   .file-tree .file-item { padding: 2px 0; }
   .file-tree .file-item:hover { background: #2d2d2d; cursor: pointer; color: white; }
-
   @media (max-width: 600px) {
     .header h1 { font-size: 1.5rem; }
     #uploadTab { padding: 20px; }
@@ -225,21 +109,17 @@
 </head>
 <body>
 
-<!-- ===== HEADER ===== -->
 <div class="header">
   <h1>📦 ZIP Web Extractor</h1>
   <p>Upload file ZIP → Giải nén → Chạy web ngay trong trình duyệt</p>
 </div>
 
-<!-- ===== TABS ===== -->
 <div class="tabs">
   <button class="tab-btn active" data-tab="upload">📤 Upload ZIP</button>
   <button class="tab-btn" data-tab="preview">🌐 Xem Web</button>
 </div>
 
 <div class="container">
-
-  <!-- ========== TAB 1: UPLOAD ========== -->
   <div id="uploadTab">
     <div class="drop-zone" id="dropZone">
       <div class="icon">📁</div>
@@ -247,36 +127,30 @@
       <p>hoặc click để chọn file (chỉ hỗ trợ .zip)</p>
       <input type="file" id="fileInput" accept=".zip,application/zip">
     </div>
-
     <div class="file-info" id="fileInfo">
-      <strong>📄 File đã chọn:</strong> <span id="fileName"></span>
-      <br>
+      <strong>📄 File đã chọn:</strong> <span id="fileName"></span><br>
       <strong>📊 Kích thước:</strong> <span id="fileSize"></span>
     </div>
-
     <div class="progress-bar" id="progressBar">
       <div class="progress-fill" id="progressFill"></div>
     </div>
-
     <div class="btn-row">
       <button class="btn btn-primary" id="extractBtn" disabled>🚀 Giải nén & Chạy</button>
       <button class="btn btn-secondary" id="resetBtn">🔄 Làm mới</button>
     </div>
-
     <div class="status" id="status"></div>
   </div>
 
-  <!-- ========== TAB 2: PREVIEW ========== -->
   <div id="previewTab">
     <div class="preview-toolbar">
       <div class="url-bar" id="urlBar">about:blank</div>
-      <button id="openNewTabBtn">↗ Mở tab mới</button>
       <button id="showTreeBtn">📂 Cấu trúc</button>
       <button class="danger" id="clearBtn">✕ Đóng</button>
     </div>
     <div class="file-tree" id="fileTree"></div>
     <div class="preview-frame-wrap">
-      <iframe id="previewFrame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"></iframe>
+      <!-- Bỏ sandbox để tránh lỗi chặn Base64/Blob của Safari -->
+      <iframe id="previewFrame"></iframe>
       <div class="empty-preview" id="emptyPreview">
         <div class="icon">🌐</div>
         <h3>Chưa có web nào được load</h3>
@@ -284,46 +158,39 @@
       </div>
     </div>
   </div>
-
 </div>
 
 <script>
 (function () {
   'use strict';
 
-  // ===== DOM refs =====
-  const dropZone    = document.getElementById('dropZone');
-  const fileInput   = document.getElementById('fileInput');
-  const fileInfo    = document.getElementById('fileInfo');
-  const fileNameEl  = document.getElementById('fileName');
-  const fileSizeEl  = document.getElementById('fileSize');
-  const extractBtn  = document.getElementById('extractBtn');
-  const resetBtn    = document.getElementById('resetBtn');
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const fileInfo = document.getElementById('fileInfo');
+  const fileNameEl = document.getElementById('fileName');
+  const fileSizeEl = document.getElementById('fileSize');
+  const extractBtn = document.getElementById('extractBtn');
+  const resetBtn = document.getElementById('resetBtn');
   const progressBar = document.getElementById('progressBar');
-  const progressFill= document.getElementById('progressFill');
-  const statusEl    = document.getElementById('status');
-  const previewTab  = document.getElementById('previewTab');
-  const uploadTab   = document.getElementById('uploadTab');
-  const previewFrame= document.getElementById('previewFrame');
-  const emptyPreview= document.getElementById('emptyPreview');
-  const urlBar      = document.getElementById('urlBar');
-  const fileTree    = document.getElementById('fileTree');
-  const openNewTabBtn = document.getElementById('openNewTabBtn');
+  const progressFill = document.getElementById('progressFill');
+  const statusEl = document.getElementById('status');
+  const previewTab = document.getElementById('previewTab');
+  const uploadTab = document.getElementById('uploadTab');
+  const previewFrame = document.getElementById('previewFrame');
+  const emptyPreview = document.getElementById('emptyPreview');
+  const urlBar = document.getElementById('urlBar');
+  const fileTree = document.getElementById('fileTree');
   const showTreeBtn = document.getElementById('showTreeBtn');
-  const clearBtn    = document.getElementById('clearBtn');
+  const clearBtn = document.getElementById('clearBtn');
 
-  // ===== State =====
   let selectedFile = null;
-  let currentBlobUrl = null;
-  let extractedFiles = [];
 
-  // ===== Tab switching =====
+  // Tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const tab = btn.dataset.tab;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
       if (tab === 'upload') {
         uploadTab.classList.remove('hidden');
         previewTab.classList.remove('active');
@@ -334,24 +201,17 @@
     });
   });
 
-  // ===== Drag & Drop =====
+  // Drag & Drop
   ['dragenter', 'dragover'].forEach(evt => {
-    dropZone.addEventListener(evt, e => {
-      e.preventDefault();
-      dropZone.classList.add('dragover');
-    });
+    dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add('dragover'); });
   });
   ['dragleave', 'drop'].forEach(evt => {
-    dropZone.addEventListener(evt, e => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-    });
+    dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.remove('dragover'); });
   });
   dropZone.addEventListener('drop', e => {
     const f = e.dataTransfer.files[0];
     if (f) handleFileSelect(f);
   });
-
   dropZone.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', e => {
     if (e.target.files[0]) handleFileSelect(e.target.files[0]);
@@ -381,7 +241,6 @@
     statusEl.className = 'status' + (type ? ' ' + type : '');
   }
 
-  // Chuyển file sang Base64 (Khắc phục lỗi Safari)
   function blobToBase64(blob) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -391,10 +250,9 @@
     });
   }
 
-  // ===== Extract ZIP =====
+  // Extract
   extractBtn.addEventListener('click', async () => {
     if (!selectedFile) return;
-
     extractBtn.disabled = true;
     progressBar.classList.add('show');
     progressFill.style.width = '0%';
@@ -407,8 +265,6 @@
       progressFill.style.width = '40%';
 
       const entries = Object.keys(zip.files).filter(n => !zip.files[n].dir);
-      extractedFiles = entries;
-
       let htmlPath = findEntryHtml(entries);
       if (!htmlPath) throw new Error('Không tìm thấy file .html nào trong ZIP (cần có index.html)');
 
@@ -416,29 +272,25 @@
       let done = 0;
       const total = entries.length;
 
-      // Đọc file và chuyển sang Base64
       for (const path of entries) {
         const ext = path.split('.').pop().toLowerCase();
         const mime = getMime(ext);
         const content = await zip.files[path].async('blob');
         const base64 = await blobToBase64(new Blob([content], { type: mime }));
-        blobMap[path] = base64; 
-
+        blobMap[path] = base64;
         done++;
         progressFill.style.width = (40 + (done / total) * 50) + '%';
       }
 
       const htmlRaw = await zip.files[htmlPath].async('string');
       const baseDir = htmlPath.includes('/') ? htmlPath.substring(0, htmlPath.lastIndexOf('/') + 1) : '';
-
-      const htmlRewritten = rewriteHtml(htmlRaw, baseDir, blobMap, htmlPath);
-
-      if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
-      currentBlobUrl = URL.createObjectURL(new Blob([htmlRewritten], { type: 'text/html' }));
+      const htmlRewritten = rewriteHtml(htmlRaw, baseDir, blobMap);
 
       progressFill.style.width = '100%';
-      loadPreview(currentBlobUrl, htmlPath, entries);
-      showStatus('✅ Giải nén thành công! Đang mở web...', 'success');
+      
+      // FIX LỖI SAFARI: Sử dụng srcdoc thay vì tạo Blob URL
+      loadPreviewViaSrcdoc(htmlRewritten, htmlPath, entries);
+      showStatus('✅ Giải nén thành công!', 'success');
 
       setTimeout(() => {
         document.querySelector('[data-tab="preview"]').click();
@@ -463,22 +315,16 @@
 
   function getMime(ext) {
     const map = {
-      html:'text/html', htm:'text/html', css:'text/css',
-      js:'application/javascript', mjs:'application/javascript',
-      json:'application/json', xml:'application/xml',
-      svg:'image/svg+xml', png:'image/png', jpg:'image/jpeg',
-      jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp',
-      ico:'image/x-icon', woff:'font/woff', woff2:'font/woff2',
-      ttf:'font/ttf', otf:'font/otf', eot:'application/vnd.ms-fontobject',
-      mp4:'video/mp4', webm:'video/webm', mp3:'audio/mpeg',
-      wav:'audio/wav', pdf:'application/pdf', txt:'text/plain',
-      md:'text/plain', map:'application/json'
+      html:'text/html', htm:'text/html', css:'text/css', js:'application/javascript',
+      json:'application/json', xml:'application/xml', svg:'image/svg+xml',
+      png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp',
+      ico:'image/x-icon', woff:'font/woff', woff2:'font/woff2', ttf:'font/ttf',
+      mp4:'video/mp4', webm:'video/webm', mp3:'audio/mpeg', wav:'audio/wav'
     };
     return map[ext] || 'application/octet-stream';
   }
 
-  // ===== Rewrite HTML dùng Base64 =====
-  function rewriteHtml(html, baseDir, blobMap, htmlPath) {
+  function rewriteHtml(html, baseDir, blobMap) {
     function resolvePath(ref, base) {
       if (/^(https?:|data:|blob:|mailto:|javascript:|#|\/\/)/i.test(ref)) return null;
       const clean = ref.split('?')[0].split('#')[0];
@@ -501,18 +347,13 @@
         const newVal = value.split(',').map(part => {
           const [url, descriptor] = part.trim().split(/\s+/);
           const resolved = resolvePath(url, baseDir);
-          if (resolved && blobMap[resolved]) {
-            return descriptor ? blobMap[resolved] + ' ' + descriptor : blobMap[resolved];
-          }
+          if (resolved && blobMap[resolved]) return descriptor ? blobMap[resolved] + ' ' + descriptor : blobMap[resolved];
           return part.trim();
         }).join(', ');
         return `${attr}="${newVal}"`;
       }
-
       const resolved = resolvePath(value, baseDir);
-      if (resolved && blobMap[resolved]) {
-        return `${attr}="${blobMap[resolved]}"`; 
-      }
+      if (resolved && blobMap[resolved]) return `${attr}="${blobMap[resolved]}"`;
       return match;
     });
 
@@ -525,11 +366,13 @@
     return result;
   }
 
-  function loadPreview(blobUrl, htmlPath, entries) {
+  // Hàm load an toàn cho Safari
+  function loadPreviewViaSrcdoc(html, htmlPath, entries) {
     emptyPreview.style.display = 'none';
     previewFrame.style.display = 'block';
-    previewFrame.src = blobUrl;
-    urlBar.textContent = '📄 ' + htmlPath + '  (blob://)';
+    // Nhúng thẳng HTML vào iframe
+    previewFrame.srcdoc = html;
+    urlBar.textContent = '📄 ' + htmlPath;
 
     fileTree.innerHTML = entries.map(p => `<div class="file-item">${escapeHtml(p)}</div>`).join('');
   }
@@ -538,12 +381,9 @@
     return s.replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
   }
 
-  openNewTabBtn.addEventListener('click', () => { if (currentBlobUrl) window.open(currentBlobUrl, '_blank'); });
   showTreeBtn.addEventListener('click', () => fileTree.classList.toggle('show'));
   clearBtn.addEventListener('click', () => {
-    if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
-    currentBlobUrl = null;
-    previewFrame.src = 'about:blank';
+    previewFrame.srcdoc = ''; // Xoá srcdoc
     previewFrame.style.display = 'none';
     emptyPreview.style.display = 'flex';
     urlBar.textContent = 'about:blank';
