@@ -2,16 +2,15 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZIP Web Extractor - Safari Fixed</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ZIP Web Extractor</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
+    min-height: 100vh; padding: 20px;
   }
   .header { text-align: center; color: white; margin-bottom: 30px; }
   .header h1 { font-size: 2.2rem; margin-bottom: 8px; }
@@ -27,6 +26,7 @@
   .container {
     max-width: 1200px; margin: 0 auto; background: white;
     border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;
+    transition: all 0.3s;
   }
   #uploadTab { padding: 40px; }
   .drop-zone {
@@ -69,21 +69,26 @@
   #previewTab { display: none; }
   #previewTab.active { display: block; }
   #uploadTab.hidden { display: none; }
+
+  /* ===== PREVIEW TOOLBAR ===== */
   .preview-toolbar {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 20px; background: #2d2d2d; color: white; gap: 12px; flex-wrap: wrap;
+    padding: 12px 20px; background: #2d2d2d; color: white; gap: 8px; flex-wrap: wrap;
   }
   .preview-toolbar .url-bar {
-    flex: 1; min-width: 200px; background: #1e1e1e; padding: 8px 14px;
+    flex: 1; min-width: 100px; background: #1e1e1e; padding: 8px 14px;
     border-radius: 6px; font-family: monospace; font-size: 13px;
     color: #aaa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .preview-toolbar button {
-    padding: 6px 14px; border: none; border-radius: 6px;
+    padding: 6px 12px; border: none; border-radius: 6px;
     cursor: pointer; font-size: 13px; font-weight: 600; background: #444; color: white;
   }
   .preview-toolbar button:hover { background: #555; }
   .preview-toolbar button.danger { background: #e53935; }
+  .preview-toolbar button.success { background: #4CAF50; }
+
+  /* ===== FRAME ===== */
   .preview-frame-wrap { position: relative; height: 75vh; min-height: 500px; background: #f0f0f0; }
   #previewFrame { width: 100%; height: 100%; border: none; background: white; }
   .empty-preview {
@@ -99,11 +104,24 @@
   .file-tree.show { display: block; }
   .file-tree .file-item { padding: 2px 0; }
   .file-tree .file-item:hover { background: #2d2d2d; cursor: pointer; color: white; }
+
+  /* ===== CHẾ ĐỘ TOÀN MÀN HÌNH (FULLSCREEN) ===== */
+  body.fs-active { padding: 0; background: #000; }
+  body.fs-active .header, 
+  body.fs-active .tabs { display: none; }
+  body.fs-active .container { 
+    max-width: 100%; border-radius: 0; height: 100vh; box-shadow: none; 
+  }
+  body.fs-active .preview-frame-wrap { 
+    height: calc(100vh - 50px); min-height: calc(100vh - 50px); 
+  }
+
   @media (max-width: 600px) {
     .header h1 { font-size: 1.5rem; }
     #uploadTab { padding: 20px; }
     .drop-zone { padding: 40px 15px; }
-    .preview-frame-wrap { height: 60vh; }
+    .preview-frame-wrap { height: 65vh; }
+    .preview-toolbar .url-bar { display: none; } /* Ẩn url bar trên mobile cho gọn */
   }
 </style>
 </head>
@@ -111,7 +129,7 @@
 
 <div class="header">
   <h1>📦 ZIP Web Extractor</h1>
-  <p>Upload file ZIP → Giải nén → Chạy web ngay trong trình duyệt</p>
+  <p>Upload file ZIP → Giải nén → Chạy web ngay</p>
 </div>
 
 <div class="tabs">
@@ -128,8 +146,8 @@
       <input type="file" id="fileInput" accept=".zip,application/zip">
     </div>
     <div class="file-info" id="fileInfo">
-      <strong>📄 File đã chọn:</strong> <span id="fileName"></span><br>
-      <strong>📊 Kích thước:</strong> <span id="fileSize"></span>
+      <strong>📄 File:</strong> <span id="fileName"></span> | 
+      <strong>📊 Size:</strong> <span id="fileSize"></span>
     </div>
     <div class="progress-bar" id="progressBar">
       <div class="progress-fill" id="progressFill"></div>
@@ -143,13 +161,14 @@
 
   <div id="previewTab">
     <div class="preview-toolbar">
+      <button class="success" id="fsBtn" style="display:none;">⛶ Mở rộng</button>
       <div class="url-bar" id="urlBar">about:blank</div>
+      <button id="openNewTabBtn" style="display:none;">↗ Tab mới</button>
       <button id="showTreeBtn">📂 Cấu trúc</button>
       <button class="danger" id="clearBtn">✕ Đóng</button>
     </div>
     <div class="file-tree" id="fileTree"></div>
     <div class="preview-frame-wrap">
-      <!-- Bỏ sandbox để tránh lỗi chặn Base64/Blob của Safari -->
       <iframe id="previewFrame"></iframe>
       <div class="empty-preview" id="emptyPreview">
         <div class="icon">🌐</div>
@@ -182,8 +201,13 @@
   const fileTree = document.getElementById('fileTree');
   const showTreeBtn = document.getElementById('showTreeBtn');
   const clearBtn = document.getElementById('clearBtn');
+  
+  // Nút mới
+  const fsBtn = document.getElementById('fsBtn');
+  const openNewTabBtn = document.getElementById('openNewTabBtn');
 
   let selectedFile = null;
+  let currentHtmlData = ""; // Lưu lại HTML để tí nữa mở tab mới
 
   // Tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -266,7 +290,7 @@
 
       const entries = Object.keys(zip.files).filter(n => !zip.files[n].dir);
       let htmlPath = findEntryHtml(entries);
-      if (!htmlPath) throw new Error('Không tìm thấy file .html nào trong ZIP (cần có index.html)');
+      if (!htmlPath) throw new Error('Không tìm thấy file .html nào trong ZIP');
 
       const blobMap = {};
       let done = 0;
@@ -288,8 +312,9 @@
 
       progressFill.style.width = '100%';
       
-      // FIX LỖI SAFARI: Sử dụng srcdoc thay vì tạo Blob URL
-      loadPreviewViaSrcdoc(htmlRewritten, htmlPath, entries);
+      currentHtmlData = htmlRewritten;
+      
+      loadPreview(htmlRewritten, htmlPath, entries);
       showStatus('✅ Giải nén thành công!', 'success');
 
       setTimeout(() => {
@@ -366,31 +391,61 @@
     return result;
   }
 
-  // Hàm load an toàn cho Safari
-  function loadPreviewViaSrcdoc(html, htmlPath, entries) {
+  function loadPreview(html, htmlPath, entries) {
     emptyPreview.style.display = 'none';
     previewFrame.style.display = 'block';
-    // Nhúng thẳng HTML vào iframe
     previewFrame.srcdoc = html;
     urlBar.textContent = '📄 ' + htmlPath;
-
     fileTree.innerHTML = entries.map(p => `<div class="file-item">${escapeHtml(p)}</div>`).join('');
+    
+    // Hiện các nút chức năng
+    fsBtn.style.display = 'block';
+    openNewTabBtn.style.display = 'block';
   }
 
   function escapeHtml(s) {
     return s.replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
   }
 
+  // --- NÚT MỞ RỘNG TOÀN MÀN HÌNH ---
+  fsBtn.addEventListener('click', () => {
+    document.body.classList.toggle('fs-active');
+    if (document.body.classList.contains('fs-active')) {
+      fsBtn.textContent = '⛶ Thu nhỏ';
+    } else {
+      fsBtn.textContent = '⛶ Mở rộng';
+    }
+  });
+
+  // --- NÚT MỞ TAB MỚI (Chỉ hoạt động trên PC/Chrome, Safari sẽ chặn) ---
+  openNewTabBtn.addEventListener('click', () => {
+    if (!currentHtmlData) return;
+    const newWin = window.open('', '_blank');
+    if (newWin) {
+      newWin.document.open();
+      newWin.document.write(currentHtmlData);
+      newWin.document.close();
+    } else {
+      alert('Trình duyệt của bạn (Safari) đã chặn mở tab mới. Hãy dùng nút "Mở rộng" để xem toàn màn hình!');
+    }
+  });
+
   showTreeBtn.addEventListener('click', () => fileTree.classList.toggle('show'));
+  
   clearBtn.addEventListener('click', () => {
-    previewFrame.srcdoc = ''; // Xoá srcdoc
+    previewFrame.srcdoc = '';
     previewFrame.style.display = 'none';
     emptyPreview.style.display = 'flex';
     urlBar.textContent = 'about:blank';
     fileTree.innerHTML = '';
     fileTree.classList.remove('show');
+    fsBtn.style.display = 'none';
+    openNewTabBtn.style.display = 'none';
+    currentHtmlData = "";
+    document.body.classList.remove('fs-active'); // Thoát chế độ toàn màn hình nếu đang bật
     showStatus('', '');
   });
+  
   resetBtn.addEventListener('click', () => {
     selectedFile = null;
     fileInput.value = '';
