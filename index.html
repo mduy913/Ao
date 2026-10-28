@@ -1,1484 +1,615 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌍 Thế giới thực hoàn chỉnh</title>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0e17;color:#c8d6e5;overflow:hidden;height:100vh}
-        #app{display:flex;flex-direction:column;height:100vh}
-        #header{background:rgba(20,28,43,0.95);padding:6px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e2a3a;flex-shrink:0;flex-wrap:wrap;gap:4px;z-index:10}
-        .logo{font-size:16px;font-weight:700;color:#48dbfb}
-        #stats{display:flex;gap:8px;font-size:11px;flex-wrap:wrap}
-        #stats span{background:#0d1421;padding:2px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.05)}
-        #controls{display:flex;gap:3px;flex-wrap:wrap}
-        #controls button{background:#1e2a3a;border:1px solid rgba(255,255,255,0.05);color:#c8d6e5;padding:2px 8px;border-radius:5px;cursor:pointer;font-size:10px;transition:.3s}
-        #controls button:hover{background:#48dbfb;color:#0a0e17}
-        #controls button.active{background:#48dbfb;color:#0a0e17}
-        #controls button.danger{background:rgba(255,107,107,0.3);color:#ff6b6b}
-        #controls button.danger:hover{background:#ff6b6b;color:#0a0e17}
-        #world-container{flex:1;position:relative;overflow:hhidden}
-        #world-container canvas{display:block;width:100%!important;height:100%!important}
-        #info-panel{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(20,28,43,0.85);padding:4px 12px;border-radius:8px;font-size:10px;color:#8395a7;border:1px solid rgba(255,255,255,0.05);backdrop-filter:blur(10px);pointer-events:none;white-space:nowrap}
-        #sidebar{position:absolute;right:0;top:0;width:200px;height:100%;background:rgba(20,28,43,0.92);padding:10px;overflow-y:auto;border-left:1px solid #1e2a3a;backdrop-filter:blur(10px);display:none;font-size:11px}
-        #sidebar.show{display:block}
-        #sidebar h4{color:#48dbfb;font-size:11px;margin:6px 0 3px;border-bottom:1px solid #1e2a3a;padding-bottom:2px}
-        .stat-row{display:flex;justify-content:space-between;padding:1px 0;font-size:10px}
-        .stat-row span:first-child{color:#8395a7}
-        .npc-item{padding:2px 6px;margin:1px 0;background:#0d1421;border-radius:3px;cursor:pointer;font-size:10px;display:flex;justify-content:space-between;transition:.3s}
-        .npc-item:hover{background:#1e2a3a}
-        #npc-modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.7);justify-content:center;align-items:center;animation:fadeIn .3s ease}
-        #npc-modal.show{display:flex}
-        @keyframes fadeIn{0%{opacity:0;transform:scale(0.9)}100%{opacity:1;transform:scale(1)}}
-        .modal-content{background:#141c2b;padding:20px;border-radius:12px;max-width:380px;width:90%;max-height:70vh;overflow-y:auto;border:1px solid #1e2a3a;position:relative}
-        .close-btn{position:absolute;top:8px;right:12px;font-size:18px;cursor:pointer;color:#8395a7;background:none;border:none}
-        .close-btn:hover{color:#ff6b6b;transform:rotate(90deg)}
-        .modal-title{color:#48dbfb;font-size:16px;margin-bottom:8px;padding-right:25px}
-        #npc-info .field{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:11px}
-        #npc-info .field .label{color:#8395a7}
-        #npc-info .field .value{color:#ecf0f1}
-        #npc-info .field .value.highlight{color:#48dbfb;font-weight:600}
-        #npc-list{max-height:200px;overflow-y:auto}
-        @media(max-width:768px){#stats{font-size:9px;gap:4px}#stats span{padding:1px 5px}.logo{font-size:13px}#controls button{font-size:9px;padding:1px 6px}#sidebar{width:160px}}
-        @media(max-width:480px){#header{flex-direction:column;align-items:stretch;gap:3px;padding:4px}#stats{justify-content:center}#controls{justify-content:center}#sidebar{display:none}#info-panel{display:none}}
-        #country-select{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(20,28,43,0.9);padding:4px 12px;border-radius:8px;border:1px solid #1e2a3a;display:none;z-index:5}
-        #country-select select{background:#0d1421;color:#c8d6e5;border:1px solid #1e2a3a;border-radius:4px;padding:2px 6px;font-size:11px}
-        #building-info{position:absolute;bottom:50px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);padding:4px 12px;border-radius:6px;font-size:10px;color:#c8d6e5;display:none;pointer-events:none}
-        .mini-map{position:absolute;bottom:12px;right:12px;width:100px;height:100px;background:rgba(0,0,0,0.6);border-radius:6px;border:1px solid rgba(255,255,255,0.1);overflow:hidden;display:none}
-        .possess-btn{background:#4ade80;color:#0a0e17;border:none;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:10px;font-weight:600;margin-top:4px}
-        .possess-btn:hover{background:#22c55e}
-        .exit-btn{background:#ff6b6b;color:#0a0e17;border:none;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:10px;font-weight:600;margin-top:4px;display:none}
-        .exit-btn:hover{background:#ef4444}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZIP Web Extractor - Upload & Chạy Web</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    text-align: center;
+    color: white;
+    margin-bottom: 30px;
+  }
+  .header h1 { font-size: 2.2rem; margin-bottom: 8px; }
+  .header p { opacity: 0.9; }
+
+  /* ===== TAB SWITCHER ===== */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .tab-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.4);
+    padding: 10px 24px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { background: rgba(255,255,255,0.3); }
+  .tab-btn.active { background: white; color: #764ba2; border-color: white; }
+
+  /* ===== CONTAINER ===== */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+  }
+
+  /* ===== TAB 1: UPLOAD ===== */
+  #uploadTab { padding: 40px; }
+  .drop-zone {
+    border: 3px dashed #667eea;
+    border-radius: 16px;
+    padding: 60px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #f8f9ff;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    background: #eef1ff;
+    border-color: #764ba2;
+    transform: scale(1.01);
+  }
+  .drop-zone .icon { font-size: 64px; margin-bottom: 16px; }
+  .drop-zone h3 { color: #333; margin-bottom: 8px; font-size: 1.3rem; }
+  .drop-zone p { color: #888; font-size: 14px; }
+  .drop-zone input { display: none; }
+
+  .file-info {
+    display: none;
+    margin-top: 20px;
+    padding: 16px;
+    background: #e8f5e9;
+    border-left: 4px solid #4CAF50;
+    border-radius: 8px;
+  }
+  .file-info.show { display: block; }
+  .file-info strong { color: #2e7d32; }
+
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    justify-content: center;
+  }
+  .btn {
+    padding: 12px 32px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.4); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-secondary { background: #eee; color: #555; }
+  .btn-secondary:hover { background: #ddd; }
+
+  .progress-bar {
+    display: none;
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 20px;
+  }
+  .progress-bar.show { display: block; }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transition: width 0.3s;
+  }
+
+  .status {
+    margin-top: 16px;
+    text-align: center;
+    font-weight: 600;
+  }
+  .status.success { color: #2e7d32; }
+  .status.error { color: #c62828; }
+
+  /* ===== TAB 2: PREVIEW ===== */
+  #previewTab { display: none; }
+  #previewTab.active { display: block; }
+  #uploadTab.hidden { display: none; }
+
+  .preview-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: #2d2d2d;
+    color: white;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .preview-toolbar .url-bar {
+    flex: 1;
+    min-width: 200px;
+    background: #1e1e1e;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 13px;
+    color: #aaa;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .preview-toolbar button {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    background: #444;
+    color: white;
+  }
+  .preview-toolbar button:hover { background: #555; }
+  .preview-toolbar button.danger { background: #e53935; }
+
+  .preview-frame-wrap {
+    position: relative;
+    height: 75vh;
+    min-height: 500px;
+    background: #f0f0f0;
+  }
+  #previewFrame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
+  }
+
+  .empty-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    text-align: center;
+    padding: 40px;
+  }
+  .empty-preview .icon { font-size: 72px; margin-bottom: 16px; }
+
+  /* ===== FILE TREE ===== */
+  .file-tree {
+    padding: 16px 20px;
+    background: #1e1e1e;
+    color: #ccc;
+    font-family: monospace;
+    font-size: 13px;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+  }
+  .file-tree.show { display: block; }
+  .file-tree .file-item { padding: 2px 0; }
+  .file-tree .file-item:hover { background: #2d2d2d; cursor: pointer; color: white; }
+
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.5rem; }
+    #uploadTab { padding: 20px; }
+    .drop-zone { padding: 40px 15px; }
+    .preview-frame-wrap { height: 60vh; }
+  }
+</style>
 </head>
 <body>
-<div id="app">
-    <div id="header">
-        <div class="logo">🌍 Thế giới thực</div>
-        <div id="stats">
-            <span id="time-display">⏰ 06:00</span>
-            <span id="weather-display">🌤️ 25°C</span>
-            <span id="npc-count">👥 0</span>
-            <span id="fps-display">⚡ 60</span>
-            <span id="possess-status">👤 Camera</span>
-        </div>
-        <div id="controls">
-            <button id="pause-btn" onclick="togglePause()">⏸️</button>
-            <button onclick="setSpeed(0.5)">0.5x</button>
-            <button onclick="setSpeed(1)" class="active">1x</button>
-            <button onclick="setSpeed(2)">2x</button>
-            <button onclick="setSpeed(5)">5x</button>
-            <button onclick="addRandomNPC()" class="danger">➕</button>
-            <button onclick="toggleSidebar()">📊</button>
-            <button onclick="toggleCamera()">🎥</button>
-            <button onclick="exitPossess()" id="exit-btn" class="danger" style="display:none">🚫 Thoát</button>
-        </div>
-    </div>
-    <div id="world-container">
-        <div id="info-panel">🖱️ Click → Xem | 🔄 Zoom | 🖱️ Kéo → Xoay | 👤 Click NPC → Nhập vai</div>
-        <div id="building-info"></div>
-        <div id="sidebar">
-            <h4>📊 Thống kê</h4>
-            <div class="stat-row"><span>Tổng NPC:</span><span id="s-total">0</span></div>
-            <div class="stat-row"><span>Đang di chuyển:</span><span id="s-moving">0</span></div>
-            <div class="stat-row"><span>Đói:</span><span id="s-hungry">0</span></div>
-            <div class="stat-row"><span>Mệt:</span><span id="s-tired">0</span></div>
-            <div class="stat-row"><span>Bệnh:</span><span id="s-sick">0</span></div>
-            <h4>🏙️ Thành phố</h4>
-            <div class="stat-row"><span>Nhà cửa:</span><span id="s-buildings">0</span></div>
-            <div class="stat-row"><span>Dân số:</span><span id="s-population">0</span></div>
-            <h4>💰 Kinh tế</h4>
-            <div class="stat-row"><span>GDP:</span><span id="s-gdp">0</span></div>
-            <div class="stat-row"><span>Thất nghiệp:</span><span id="s-unemployment">0%</span></div>
-            <h4>🧑 NPC</h4>
-            <div id="npc-list"></div>
-        </div>
-        <div id="country-select">
-            <select id="country-selector" onchange="teleportToCountry(this.value)">
-                <option value="">🌍 Chọn quốc gia...</option>
-            </select>
-        </div>
-    </div>
-    <div id="npc-modal" onclick="if(event.target===this)closeModal()">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal()">&times;</button>
-            <div id="npc-info"></div>
-        </div>
-    </div>
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+  <h1>📦 ZIP Web Extractor</h1>
+  <p>Upload file ZIP → Giải nén → Chạy web ngay trong trình duyệt</p>
 </div>
 
-<script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
-</script>
+<!-- ===== TABS ===== -->
+<div class="tabs">
+  <button class="tab-btn active" data-tab="upload">📤 Upload ZIP</button>
+  <button class="tab-btn" data-tab="preview">🌐 Xem Web</button>
+</div>
 
-<script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+<div class="container">
 
-// ============================================================
-// DOM REFS
-// ============================================================
-const container = document.getElementById('world-container');
-const timeDisplay = document.getElementById('time-display');
-const weatherDisplay = document.getElementById('weather-display');
-const npcCount = document.getElementById('npc-count');
-const fpsDisplay = document.getElementById('fps-display');
-const pauseBtn = document.getElementById('pause-btn');
-const sidebar = document.getElementById('sidebar');
-const exitBtn = document.getElementById('exit-btn');
-const possessStatus = document.getElementById('possess-status');
+  <!-- ========== TAB 1: UPLOAD ========== -->
+  <div id="uploadTab">
+    <div class="drop-zone" id="dropZone">
+      <div class="icon">📁</div>
+      <h3>Kéo thả file ZIP vào đây</h3>
+      <p>hoặc click để chọn file (chỉ hỗ trợ .zip)</p>
+      <input type="file" id="fileInput" accept=".zip,application/zip">
+    </div>
 
-// ============================================================
-// WORLD CONFIG
-// ============================================================
-const WORLD_SIZE = 2000;
-const CONFIG = {
-    worldSize: WORLD_SIZE,
-    maxNPC: 1000,
-    dayLength: 24,
-    monthLength: 30,
-    yearLength: 12,
-    tickInterval: 0.5
-};
+    <div class="file-info" id="fileInfo">
+      <strong>📄 File đã chọn:</strong> <span id="fileName"></span>
+      <br>
+      <strong>📊 Kích thước:</strong> <span id="fileSize"></span>
+    </div>
 
-// ============================================================
-// WORLD STATE
-// ============================================================
-const world = {
-    npcs: [],
-    buildings: [],
-    countries: [],
-    cities: [],
-    roads: [],
-    trees: [],
-    vehicles: [],
-    hours: 6,
-    days: 0,
-    months: 0,
-    years: 0,
-    season: 'Xuân',
-    weather: '☀️ Nắng',
-    temperature: 25,
-    isPaused: false,
-    speed: 1,
-    tickCount: 0,
-    npcIdCounter: 0,
-    buildingIdCounter: 0,
-    countryIdCounter: 0,
-    economy: 10000,
-    population: 0,
-    unemployment: 5,
-    gdp: 1000000,
-    possessedNPC: null,
-    cameraMode: 'free'
-};
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
 
-// ============================================================
-// THREE.JS SETUP
-// ============================================================
-const width = container.clientWidth;
-const height = container.clientHeight;
+    <div class="btn-row">
+      <button class="btn btn-primary" id="extractBtn" disabled>🚀 Giải nén & Chạy</button>
+      <button class="btn btn-secondary" id="resetBtn">🔄 Làm mới</button>
+    </div>
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0e17);
-scene.fog = new THREE.Fog(0x0a0e17, 400, 800);
+    <div class="status" id="status"></div>
+  </div>
 
-const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1200);
-camera.position.set(200, 150, 200);
-camera.lookAt(0, 0, 0);
+  <!-- ========== TAB 2: PREVIEW ========== -->
+  <div id="previewTab">
+    <div class="preview-toolbar">
+      <div class="url-bar" id="urlBar">about:blank</div>
+      <button id="openNewTabBtn">↗ Mở tab mới</button>
+      <button id="showTreeBtn">📂 Cấu trúc</button>
+      <button class="danger" id="clearBtn">✕ Đóng</button>
+    </div>
+    <div class="file-tree" id="fileTree"></div>
+    <div class="preview-frame-wrap">
+      <iframe id="previewFrame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"></iframe>
+      <div class="empty-preview" id="emptyPreview">
+        <div class="icon">🌐</div>
+        <h3>Chưa có web nào được load</h3>
+        <p>Hãy quay lại tab "Upload ZIP" để tải lên trước</p>
+      </div>
+    </div>
+  </div>
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(width, height);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
-container.appendChild(renderer.domElement);
+</div>
 
-const labelRenderer = new CSS2DRenderer();
-labelRenderer.setSize(width, height);
-labelRenderer.domElement.style.position = 'absolute';
-labelRenderer.domElement.style.top = '0';
-labelRenderer.domElement.style.left = '0';
-labelRenderer.domElement.style.pointerEvents = 'none';
-container.appendChild(labelRenderer.domElement);
+<script>
+(function () {
+  'use strict';
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.maxPolarAngle = Math.PI / 2.1;
-controls.minDistance = 5;
-controls.maxDistance = 800;
-controls.target.set(0, 0, 0);
-controls.update();
+  // ===== DOM refs =====
+  const dropZone    = document.getElementById('dropZone');
+  const fileInput   = document.getElementById('fileInput');
+  const fileInfo    = document.getElementById('fileInfo');
+  const fileNameEl  = document.getElementById('fileName');
+  const fileSizeEl  = document.getElementById('fileSize');
+  const extractBtn  = document.getElementById('extractBtn');
+  const resetBtn    = document.getElementById('resetBtn');
+  const progressBar = document.getElementById('progressBar');
+  const progressFill= document.getElementById('progressFill');
+  const statusEl    = document.getElementById('status');
+  const previewTab  = document.getElementById('previewTab');
+  const uploadTab   = document.getElementById('uploadTab');
+  const previewFrame= document.getElementById('previewFrame');
+  const emptyPreview= document.getElementById('emptyPreview');
+  const urlBar      = document.getElementById('urlBar');
+  const fileTree    = document.getElementById('fileTree');
+  const openNewTabBtn = document.getElementById('openNewTabBtn');
+  const showTreeBtn = document.getElementById('showTreeBtn');
+  const clearBtn    = document.getElementById('clearBtn');
 
-// ============================================================
-// LIGHTING
-// ============================================================
-const ambientLight = new THREE.AmbientLight(0x404060, 0.3);
-scene.add(ambientLight);
+  // ===== State =====
+  let selectedFile = null;
+  let currentBlobUrl = null;   // blob URL của index.html
+  let extractedFiles = [];     // danh sách file
 
-const sunLight = new THREE.DirectionalLight(0xffeedd, 1.5);
-sunLight.position.set(100, 150, 60);
-sunLight.castShadow = true;
-sunLight.shadow.mapSize.width = 4096;
-sunLight.shadow.mapSize.height = 4096;
-sunLight.shadow.camera.near = 0.5;
-sunLight.shadow.camera.far = 600;
-sunLight.shadow.camera.left = -300;
-sunLight.shadow.camera.right = 300;
-sunLight.shadow.camera.top = 300;
-sunLight.shadow.camera.bottom = -300;
-scene.add(sunLight);
+  // ===== Tab switching =====
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
 
-const fillLight = new THREE.DirectionalLight(0x8888ff, 0.2);
-fillLight.position.set(-60, 40, -60);
-scene.add(fillLight);
-
-const hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x3a1c00, 0.5);
-scene.add(hemiLight);
-
-// ============================================================
-// GROUND
-// ============================================================
-const groundGeo = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE);
-const groundMat = new THREE.MeshStandardMaterial({
-    color: 0x1a2a1a,
-    roughness: 0.9,
-    metalness: 0.0
-});
-const ground = new THREE.Mesh(groundGeo, groundMat);
-ground.rotation.x = -Math.PI / 2;
-ground.position.set(0, -0.5, 0);
-ground.receiveShadow = true;
-scene.add(ground);
-
-const gridHelper = new THREE.GridHelper(WORLD_SIZE, 60, 0x2a2a4e, 0x1a1a3e);
-gridHelper.position.y = -0.4;
-scene.add(gridHelper);
-
-// ============================================================
-// TERRAIN GENERATION
-// ============================================================
-function generateTerrain() {
-    // Mountains
-    for (let i = 0; i < 40; i++) {
-        const x = (Math.random() - 0.5) * WORLD_SIZE * 0.8;
-        const z = (Math.random() - 0.5) * WORLD_SIZE * 0.8;
-        const r = 20 + Math.random() * 60;
-        const h = 8 + Math.random() * 25;
-        const hill = new THREE.Mesh(
-            new THREE.CylinderGeometry(r * 0.6, r, h, 12),
-            new THREE.MeshStandardMaterial({ color: 0x2a3a2a, roughness: 0.9 })
-        );
-        hill.position.set(x, h/2 - 0.5, z);
-        hill.castShadow = true;
-        hill.receiveShadow = true;
-        scene.add(hill);
-    }
-
-    // Lakes
-    for (let i = 0; i < 10; i++) {
-        const x = (Math.random() - 0.5) * WORLD_SIZE * 0.7;
-        const z = (Math.random() - 0.5) * WORLD_SIZE * 0.7;
-        const r = 20 + Math.random() * 50;
-        const lake = new THREE.Mesh(
-            new THREE.CircleGeometry(r, 20),
-            new THREE.MeshStandardMaterial({
-                color: 0x1a4a6a,
-                roughness: 0.1,
-                metalness: 0.3,
-                transparent: true,
-                opacity: 0.6
-            })
-        );
-        lake.rotation.x = -Math.PI / 2;
-        lake.position.set(x, -0.3, z);
-        scene.add(lake);
-    }
-
-    // Rivers (winding paths)
-    for (let i = 0; i < 5; i++) {
-        let x = -WORLD_SIZE/2 + 100 + Math.random() * 200;
-        let z = -WORLD_SIZE/2 + 100 + Math.random() * 200;
-        const riverMat = new THREE.MeshStandardMaterial({
-            color: 0x1a4a7a,
-            roughness: 0.2,
-            metalness: 0.2,
-            transparent: true,
-            opacity: 0.5
-        });
-        for (let j = 0; j < 30; j++) {
-            const seg = new THREE.Mesh(new THREE.PlaneGeometry(8, 3), riverMat);
-            seg.rotation.x = -Math.PI / 2;
-            seg.position.set(x, -0.4, z);
-            seg.rotation.z = (Math.random() - 0.5) * 0.5;
-            scene.add(seg);
-            x += Math.sin(j * 0.3) * 20 + (Math.random() - 0.5) * 10;
-            z += Math.cos(j * 0.4) * 20 + (Math.random() - 0.5) * 10;
-            if (x > WORLD_SIZE/2 || z > WORLD_SIZE/2 || x < -WORLD_SIZE/2 || z < -WORLD_SIZE/2) break;
-        }
-    }
-}
-generateTerrain();
-
-// ============================================================
-// COUNTRIES
-// ============================================================
-const countryNames = ['Việt Nam', 'Thái Lan', 'Nhật Bản', 'Hàn Quốc', 'Trung Quốc', 'Ấn Độ', 'Mỹ', 'Anh', 'Pháp', 'Đức', 'Nga', 'Úc', 'Brazil', 'Ai Cập', 'Nam Phi'];
-
-function generateCountries() {
-    const numCountries = 10 + Math.floor(Math.random() * 5);
-    const usedPositions = [];
-
-    for (let i = 0; i < numCountries; i++) {
-        let x, z, attempts = 0;
-        do {
-            x = (Math.random() - 0.5) * WORLD_SIZE * 0.7;
-            z = (Math.random() - 0.5) * WORLD_SIZE * 0.7;
-            attempts++;
-        } while (attempts < 30 && usedPositions.some(p => Math.hypot(p.x - x, p.z - z) < 150));
-
-        const country = {
-            id: ++world.countryIdCounter,
-            name: countryNames[i % countryNames.length] + (i >= countryNames.length ? ` ${Math.floor(i/countryNames.length)+1}` : ''),
-            capital: `Thủ đô ${i+1}`,
-            population: 100000 + Math.floor(Math.random() * 10000000),
-            gdp: 1000000 + Math.floor(Math.random() * 100000000),
-            x: x,
-            z: z,
-            color: new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.6, 0.5),
-            cities: [],
-            isAtWar: Math.random() < 0.1,
-            border: null
-        };
-
-        // Create country border (circle)
-        const borderRadius = 50 + Math.random() * 80;
-        const borderMat = new THREE.LineBasicMaterial({ color: country.color, transparent: true, opacity: 0.3 });
-        const points = [];
-        for (let a = 0; a <= 64; a++) {
-            const angle = (a / 64) * Math.PI * 2;
-            points.push(new THREE.Vector3(
-                x + Math.cos(angle) * borderRadius,
-                0.1,
-                z + Math.sin(angle) * borderRadius
-            ));
-        }
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const borderLine = new THREE.Line(geometry, borderMat);
-        scene.add(borderLine);
-        country.border = borderLine;
-
-        // Country label
-        const labelDiv = document.createElement('div');
-        labelDiv.textContent = country.name;
-        labelDiv.style.cssText = 'color:#48dbfb;font-size:12px;font-weight:700;text-shadow:0 0 10px rgba(0,0,0,0.9);background:rgba(0,0,0,0.5);padding:2px 10px;border-radius:10px;border:1px solid rgba(72,219,251,0.2)';
-        const label = new CSS2DObject(labelDiv);
-        label.position.set(x, 20, z);
-        scene.add(label);
-
-        // Generate cities in country
-        for (let j = 0; j < 3 + Math.floor(Math.random() * 5); j++) {
-            const city = {
-                name: `Thành phố ${j+1}`,
-                x: x + (Math.random() - 0.5) * borderRadius * 1.2,
-                z: z + (Math.random() - 0.5) * borderRadius * 1.2,
-                population: 10000 + Math.floor(Math.random() * 1000000)
-            };
-            country.cities.push(city);
-
-            // City marker
-            const cityMarker = new THREE.Mesh(
-                new THREE.SphereGeometry(2, 8, 8),
-                new THREE.MeshStandardMaterial({ color: country.color, emissive: country.color, emissiveIntensity: 0.2 })
-            );
-            cityMarker.position.set(city.x, 0.5, city.z);
-            scene.add(cityMarker);
-
-            // City label
-            const cityLabelDiv = document.createElement('div');
-            cityLabelDiv.textContent = city.name;
-            cityLabelDiv.style.cssText = 'color:#c8d6e5;font-size:9px;text-shadow:0 0 10px rgba(0,0,0,0.8);background:rgba(0,0,0,0.4);padding:1px 6px;border-radius:6px';
-            const cityLabel = new CSS2DObject(cityLabelDiv);
-            cityLabel.position.set(city.x, 5, city.z);
-            scene.add(cityLabel);
-        }
-
-        world.countries.push(country);
-        usedPositions.push({ x, z });
-
-        // Add to selector
-        const selector = document.getElementById('country-selector');
-        const option = document.createElement('option');
-        option.value = country.id;
-        option.textContent = country.name;
-        selector.appendChild(option);
-    }
-}
-generateCountries();
-
-// ============================================================
-// BUILDING SYSTEM
-// ============================================================
-const buildingTypes = [
-    { name: 'Nhà cấp 4', w: 5, h: 3, d: 4, color: 0x8B7355, type: 'house' },
-    { name: 'Nhà tầng', w: 6, h: 6, d: 5, color: 0x6B5B3E, type: 'house' },
-    { name: 'Biệt thự', w: 8, h: 4, d: 7, color: 0x9B8B6E, type: 'villa' },
-    { name: 'Chung cư', w: 10, h: 12, d: 8, color: 0x7B6B4E, type: 'apartment' },
-    { name: 'Văn phòng', w: 8, h: 8, d: 6, color: 0x5B7B8B, type: 'office' },
-    { name: 'Khách sạn', w: 9, h: 10, d: 7, color: 0x8B7B5B, type: 'hotel' },
-    { name: 'Nhà hàng', w: 7, h: 4, d: 5, color: 0x7B5B3E, type: 'restaurant' },
-    { name: 'Quán cà phê', w: 5, h: 3, d: 4, color: 0x6B4B2E, type: 'cafe' },
-    { name: 'Siêu thị', w: 12, h: 6, d: 8, color: 0x4B7B8B, type: 'supermarket' },
-    { name: 'Bệnh viện', w: 10, h: 8, d: 7, color: 0x8B8B7B, type: 'hospital' },
-    { name: 'Trường học', w: 12, h: 5, d: 8, color: 0x7B8B6B, type: 'school' },
-    { name: 'Ngân hàng', w: 8, h: 6, d: 6, color: 0x8B8B5B, type: 'bank' },
-    { name: 'Đồn công an', w: 7, h: 5, d: 6, color: 0x5B6B7B, type: 'police' },
-    { name: 'Trạm cứu hỏa', w: 8, h: 5, d: 7, color: 0x7B5B5B, type: 'fire' },
-    { name: 'Gara', w: 6, h: 3, d: 5, color: 0x6B6B6B, type: 'garage' },
-    { name: 'Nhà kho', w: 8, h: 4, d: 6, color: 0x5B5B5B, type: 'warehouse' }
-];
-
-function createBuilding(type, x, z) {
-    const building = {
-        id: ++world.buildingIdCounter,
-        type: type,
-        name: type.name,
-        x: x,
-        z: z,
-        residents: [],
-        owner: null,
-        doors: [],
-        windows: [],
-        rooms: [],
-        furniture: [],
-        isLocked: false,
-        lightsOn: Math.random() > 0.5
-    };
-
-    const w = type.w + (Math.random() - 0.5) * 2;
-    const h = type.h + (Math.random() - 0.5) * 1.5;
-    const d = type.d + (Math.random() - 0.5) * 2;
-    const color = type.color + Math.floor(Math.random() * 0x222222);
-
-    const group = new THREE.Group();
-
-    // Main body
-    const boxMat = new THREE.MeshStandardMaterial({
-        color: color,
-        roughness: 0.8,
-        metalness: 0.1
+      if (tab === 'upload') {
+        uploadTab.classList.remove('hidden');
+        previewTab.classList.remove('active');
+      } else {
+        uploadTab.classList.add('hidden');
+        previewTab.classList.add('active');
+      }
     });
-    const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), boxMat);
-    box.position.y = h/2;
-    box.castShadow = true;
-    box.receiveShadow = true;
-    group.add(box);
+  });
 
-    // Roof
-    if (type.type !== 'apartment' && type.type !== 'office' && type.type !== 'hotel') {
-        const roof = new THREE.Mesh(
-            new THREE.ConeGeometry(Math.max(w, d) * 0.6, 1.5 + Math.random() * 0.5, 4),
-            new THREE.MeshStandardMaterial({ color: 0x4a2a1a, roughness: 0.9 })
+  // ===== Drag & Drop =====
+  ['dragenter', 'dragover'].forEach(evt => {
+    dropZone.addEventListener(evt, e => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+  });
+  ['dragleave', 'drop'].forEach(evt => {
+    dropZone.addEventListener(evt, e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+    });
+  });
+  dropZone.addEventListener('drop', e => {
+    const f = e.dataTransfer.files[0];
+    if (f) handleFileSelect(f);
+  });
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) handleFileSelect(e.target.files[0]);
+  });
+
+  // ===== Handle file selection =====
+  function handleFileSelect(file) {
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+      showStatus('❌ Chỉ chấp nhận file .zip', 'error');
+      return;
+    }
+    selectedFile = file;
+    fileNameEl.textContent = file.name;
+    fileSizeEl.textContent = formatSize(file.size);
+    fileInfo.classList.add('show');
+    extractBtn.disabled = false;
+    showStatus('', '');
+  }
+
+  // ===== Format size =====
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  // ===== Show status =====
+  function showStatus(msg, type) {
+    statusEl.textContent = msg;
+    statusEl.className = 'status' + (type ? ' ' + type : '');
+  }
+
+  // ===== Extract ZIP (JSZip) =====
+  extractBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+
+    extractBtn.disabled = true;
+    progressBar.classList.add('show');
+    progressFill.style.width = '0%';
+    showStatus('⏳ Đang đọc file ZIP...', '');
+
+    try {
+      // 1. Đọc file
+      const arrayBuffer = await selectedFile.arrayBuffer();
+      progressFill.style.width = '20%';
+
+      // 2. Load ZIP
+      const zip = await JSZip.loadAsync(arrayBuffer);
+      progressFill.style.width = '40%';
+
+      // 3. Tìm index.html
+      const entries = Object.keys(zip.files).filter(n => !zip.files[n].dir);
+      extractedFiles = entries;
+
+      // Tìm file html entry: ưu tiên index.html ở root, hoặc bất kỳ .html
+      let htmlPath = findEntryHtml(entries);
+      if (!htmlPath) {
+        throw new Error('Không tìm thấy file .html nào trong ZIP (cần có index.html)');
+      }
+
+      // 4. Xây dựng virtual filesystem → tạo blob URLs cho tất cả file
+      const blobMap = {};  // path -> blobUrl
+      let done = 0;
+      const total = entries.length;
+
+      for (const path of entries) {
+        const ext = path.split('.').pop().toLowerCase();
+        const mime = getMime(ext);
+        const content = await zip.files[path].async(
+          ['html','htm','css','js','json','txt','svg','xml','md'].includes(ext)
+            ? 'string' : 'blob'
         );
-        roof.position.y = h + 0.75;
-        roof.rotation.y = Math.PI / 4;
-        roof.castShadow = true;
-        group.add(roof);
-    }
-
-    // Windows
-    const winMat = new THREE.MeshStandardMaterial({
-        color: building.lightsOn ? 0x4a8a9a : 0x1a2a3a,
-        emissive: building.lightsOn ? 0x4a8a9a : 0x000000,
-        emissiveIntensity: building.lightsOn ? 0.3 : 0,
-        transparent: true,
-        opacity: 0.6
-    });
-    const numWindows = Math.floor(2 + Math.random() * 4);
-    for (let i = 0; i < numWindows; i++) {
-        const win = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.8), winMat);
-        const side = i % 4;
-        const offset = (i < 2) ? 1 : -1;
-        const yPos = 0.5 + Math.random() * (h - 1);
-        if (side === 0) { win.position.set(offset * w/2 * 0.6, yPos, 0); win.rotation.y = Math.PI/2; }
-        else if (side === 1) { win.position.set(0, yPos, offset * d/2 * 0.6); }
-        else if (side === 2) { win.position.set(offset * w/2 * 0.6, yPos, 0); win.rotation.y = -Math.PI/2; }
-        else { win.position.set(0, yPos, offset * d/2 * 0.6); win.rotation.y = Math.PI; }
-        group.add(win);
-        building.windows.push({ mesh: win });
-    }
-
-    // Door
-    const doorMat = new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 0.9 });
-    const door = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 1.4), doorMat);
-    door.position.set(0, 0.7, d/2 + 0.01);
-    group.add(door);
-    building.doors.push({ mesh: door, open: false });
-
-    // Furniture (interior)
-    const furnColors = [0x6B4B2E, 0x4A3A2A, 0x8B6B4E, 0x3A4A5A];
-    for (let i = 0; i < 2 + Math.floor(Math.random() * 4); i++) {
-        const fSize = 0.3 + Math.random() * 0.5;
-        const fMat = new THREE.MeshStandardMaterial({
-            color: furnColors[Math.floor(Math.random() * furnColors.length)],
-            roughness: 0.7
-        });
-        const f = new THREE.Mesh(new THREE.BoxGeometry(fSize, fSize * 0.5, fSize), fMat);
-        f.position.set(
-            (Math.random() - 0.5) * w * 0.4,
-            fSize * 0.25,
-            (Math.random() - 0.5) * d * 0.4
-        );
-        f.castShadow = true;
-        group.add(f);
-        building.furniture.push({ mesh: f });
-    }
-
-    group.position.set(x, 0, z);
-    scene.add(group);
-
-    building.mesh = group;
-    world.buildings.push(building);
-    return building;
-}
-
-function generateCity() {
-    const spacing = 12;
-    const citySize = 30;
-    const types = buildingTypes;
-
-    for (let i = -citySize/2; i < citySize/2; i++) {
-        for (let j = -citySize/2; j < citySize/2; j++) {
-            if (Math.random() > 0.25) continue;
-            const type = types[Math.floor(Math.random() * types.length)];
-            const x = i * spacing + (Math.random() - 0.5) * 3;
-            const z = j * spacing + (Math.random() - 0.5) * 3;
-            if (Math.abs(x) < 30 && Math.abs(z) < 30) continue;
-            createBuilding(type, x, z);
-        }
-    }
-}
-generateCity();
-
-// ============================================================
-// ROADS
-// ============================================================
-function createRoads() {
-    const roadMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.9 });
-    const sideMat = new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.9 });
-
-    for (let i = -8; i <= 8; i++) {
-        const pos = i * 25;
-        // Main roads
-        const hRoad = new THREE.Mesh(new THREE.PlaneGeometry(WORLD_SIZE, 2.5), roadMat);
-        hRoad.rotation.x = -Math.PI / 2;
-        hRoad.position.set(0, -0.45, pos);
-        hRoad.receiveShadow = true;
-        scene.add(hRoad);
-        world.roads.push(hRoad);
-
-        const vRoad = new THREE.Mesh(new THREE.PlaneGeometry(2.5, WORLD_SIZE), roadMat);
-        vRoad.rotation.x = -Math.PI / 2;
-        vRoad.position.set(pos, -0.45, 0);
-        vRoad.receiveShadow = true;
-        scene.add(vRoad);
-        world.roads.push(vRoad);
-
-        // Sidewalks
-        for (let side = -1; side <= 1; side += 2) {
-            const s1 = new THREE.Mesh(new THREE.PlaneGeometry(WORLD_SIZE, 1), sideMat);
-            s1.rotation.x = -Math.PI / 2;
-            s1.position.set(0, -0.43, pos + side * 2.2);
-            scene.add(s1);
-
-            const s2 = new THREE.Mesh(new THREE.PlaneGeometry(1, WORLD_SIZE), sideMat);
-            s2.rotation.x = -Math.PI / 2;
-            s2.position.set(pos + side * 2.2, -0.43, 0);
-            scene.add(s2);
-        }
-    }
-
-    // Traffic lights (simple colored spheres)
-    const lightPositions = [];
-    for (let i = -8; i <= 8; i += 2) {
-        for (let j = -8; j <= 8; j += 2) {
-            if (Math.abs(i) % 2 === 0 && Math.abs(j) % 2 === 0) {
-                lightPositions.push({ x: i * 25, z: j * 25 });
-            }
-        }
-    }
-    for (const pos of lightPositions) {
-        if (Math.abs(pos.x) < 20 && Math.abs(pos.z) < 20) continue;
-        const pole = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.15, 0.2, 3, 6),
-            new THREE.MeshStandardMaterial({ color: 0x333333 })
-        );
-        pole.position.set(pos.x, 1.5, pos.z);
-        scene.add(pole);
-
-        const colors = [0xff0000, 0x00ff00, 0xffaa00];
-        const color = colors[Math.floor(Math.random() * 3)];
-        const light = new THREE.Mesh(
-            new THREE.SphereGeometry(0.3, 8, 8),
-            new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 0.3 })
-        );
-        light.position.set(pos.x, 3.2, pos.z);
-        scene.add(light);
-    }
-}
-createRoads();
-
-// ============================================================
-// TREES & FOREST
-// ============================================================
-function createTree(x, z) {
-    const group = new THREE.Group();
-    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3728, roughness: 0.9 });
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 2.5, 6), trunkMat);
-    trunk.position.y = 1.25;
-    trunk.castShadow = true;
-    group.add(trunk);
-
-    const leafMat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color().setHSL(0.3 + Math.random() * 0.1, 0.6, 0.25 + Math.random() * 0.2),
-        roughness: 0.8
-    });
-    for (let i = 0; i < 3; i++) {
-        const size = 1.8 - i * 0.4;
-        const leaf = new THREE.Mesh(new THREE.SphereGeometry(size, 6, 6), leafMat);
-        leaf.position.y = 3 + i * 0.8;
-        leaf.position.x = (Math.random() - 0.5) * 0.6;
-        leaf.position.z = (Math.random() - 0.5) * 0.6;
-        leaf.castShadow = true;
-        group.add(leaf);
-    }
-
-    const scale = 0.8 + Math.random() * 0.6;
-    group.scale.set(scale, scale, scale);
-    group.position.set(x, 0, z);
-    group.rotation.y = Math.random() * Math.PI * 2;
-    scene.add(group);
-    world.trees.push(group);
-    return group;
-}
-
-function generateForest() {
-    for (let i = 0; i < 300; i++) {
-        const x = (Math.random() - 0.5) * WORLD_SIZE * 0.85;
-        const z = (Math.random() - 0.5) * WORLD_SIZE * 0.85;
-        if (Math.abs(x) < 120 && Math.abs(z) < 120) continue;
-        let skip = false;
-        for (const b of world.buildings) {
-            if (Math.abs(b.x - x) < 12 && Math.abs(b.z - z) < 12) { skip = true; break; }
-        }
-        if (!skip) createTree(x, z);
-    }
-}
-generateForest();
-
-// ============================================================
-// NPC SYSTEM
-// ============================================================
-const npcMeshes = new Map();
-const npcNames = {
-    first: ['Nguyễn','Trần','Lê','Phạm','Hoàng','Vũ','Đặng','Bùi','Đỗ','Hồ','Ngô','Dương','Lý'],
-    middle: ['Văn','Thị','Đức','Minh','Hữu','Kim','Xuân','Hải','Quang','Ngọc','Công','Thanh','Tuấn'],
-    last: ['An','Bình','Cường','Dung','Hạnh','Huy','Lan','Mai','Nam','Phúc','Sơn','Thảo','Vinh']
-};
-
-function generateName() {
-    return `${npcNames.first[Math.floor(Math.random()*npcNames.first.length)]} ${npcNames.middle[Math.floor(Math.random()*npcNames.middle.length)]} ${npcNames.last[Math.floor(Math.random()*npcNames.last.length)]}`;
-}
-
-function generateProfession() {
-    const professions = ['Công nhân','Bác sĩ','Giáo viên','Công an','Bộ đội','Lập trình viên','Kỹ sư','Tài xế','Phi công','Thợ điện','Thợ nước','Thợ xây','Đầu bếp','Thu ngân','Chủ doanh nghiệp','Nông dân','Ngư dân'];
-    return professions[Math.floor(Math.random() * professions.length)];
-}
-
-function createNPC(name, parentId = null) {
-    const id = ++world.npcIdCounter;
-    const gender = Math.random() > 0.5 ? 'Nam' : 'Nữ';
-    const age = 16 + Math.floor(Math.random() * 50);
-    const isChild = age < 18;
-
-    const npc = {
-        id, name: name || generateName(),
-        gender, age,
-        profession: isChild ? 'Học sinh' : generateProfession(),
-        position: { x: (Math.random()-0.5)*300, z: (Math.random()-0.5)*300 },
-        targetX: 0, targetZ: 0,
-        emotion: 'Bình thường',
-        health: 70+Math.random()*30,
-        energy: 50+Math.random()*50,
-        hunger: 30+Math.random()*40,
-        thirst: 30+Math.random()*40,
-        sleepiness: 20+Math.random()*30,
-        happiness: 50+Math.random()*50,
-        stress: 20+Math.random()*30,
-        money: 100+Math.random()*4900,
-        isAlive: true,
-        speed: 0.3+Math.random()*0.4,
-        action: 'Đứng yên',
-        actionTimer: 0,
-        family: [],
-        friends: [],
-        enemies: [],
-        children: [],
-        spouse: null,
-        parents: [],
-        siblings: [],
-        memory: [],
-        isSick: Math.random() < 0.05,
-        isWorking: false,
-        isSleeping: false,
-        isStudying: false,
-        schedule: {
-            wake: 6 + Math.floor(Math.random() * 2),
-            breakfast: 7 + Math.floor(Math.random() * 1),
-            work: 8 + Math.floor(Math.random() * 2),
-            lunch: 12,
-            workEnd: 17 + Math.floor(Math.random() * 1),
-            shopping: 18,
-            home: 19,
-            relax: 20,
-            sleep: 22 + Math.floor(Math.random() * 1)
-        },
-        home: null,
-        work: null,
-        school: null,
-        isPossessed: false
-    };
-
-    if (parentId) {
-        npc.parents.push(parentId);
-    }
-
-    npc.targetX = (Math.random()-0.5)*300;
-    npc.targetZ = (Math.random()-0.5)*300;
-
-    // Create 3D mesh
-    const color = new THREE.Color().setHSL(0.6+Math.random()*0.3, 0.6, 0.45 + (isChild ? 0.1 : 0));
-    const group = new THREE.Group();
-    const scale = isChild ? 0.7 : 1;
-
-    // Body
-    const bodyMat = new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.1 });
-    const body = new THREE.Mesh(new THREE.SphereGeometry(0.7 * scale, 8, 8), bodyMat);
-    body.position.y = 1.2 * scale;
-    body.castShadow = true;
-    group.add(body);
-
-    // Head
-    const headMat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color().setHSL(0.08, 0.3, 0.6 + (isChild ? 0.15 : 0)),
-        roughness: 0.8
-    });
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.45 * scale, 8, 8), headMat);
-    head.position.y = 2.0 * scale;
-    head.castShadow = true;
-    group.add(head);
-
-    // Hair
-    const hairMat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color().setHSL(0.08, 0.5, 0.2 + Math.random() * 0.2),
-        roughness: 0.9
-    });
-    const hair = new THREE.Mesh(new THREE.SphereGeometry(0.5 * scale, 6, 6), hairMat);
-    hair.position.y = 2.15 * scale;
-    hair.scale.set(1, 0.4, 1);
-    group.add(hair);
-
-    // Eyes
-    const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    const pupilMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-    for (let side = -1; side <= 1; side += 2) {
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scale, 6, 6), eyeMat);
-        eye.position.set(side*0.18 * scale, 2.05 * scale, 0.4 * scale);
-        group.add(eye);
-        const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.04 * scale, 6, 6), pupilMat);
-        pupil.position.set(side*0.2 * scale, 2.05 * scale, 0.45 * scale);
-        group.add(pupil);
-    }
-
-    // Arms
-    const armMat = new THREE.MeshStandardMaterial({ color, roughness: 0.6 });
-    for (let side = -1; side <= 1; side += 2) {
-        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.06 * scale, 0.08 * scale, 0.8 * scale, 4), armMat);
-        arm.position.set(side*0.75 * scale, 1.0 * scale, 0);
-        arm.rotation.z = side * 0.3;
-        group.add(arm);
-    }
-
-    // Legs
-    const legMat = new THREE.MeshStandardMaterial({ color: 0x2a2a3a, roughness: 0.8 });
-    for (let side = -1; side <= 1; side += 2) {
-        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08 * scale, 0.1 * scale, 0.7 * scale, 4), legMat);
-        leg.position.set(side*0.28 * scale, 0.35 * scale, 0);
-        group.add(leg);
-    }
-
-    // Label
-    const labelDiv = document.createElement('div');
-    labelDiv.textContent = name;
-    labelDiv.style.cssText = `color:#c8d6e5;font-size:${isChild ? 9 : 10}px;font-weight:600;text-shadow:0 0 10px rgba(0,0,0,0.8);background:rgba(0,0,0,0.5);padding:1px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(4px);pointer-events:none;white-space:nowrap`;
-    const label = new CSS2DObject(labelDiv);
-    label.position.set(0, 3.0 * scale, 0);
-    group.add(label);
-
-    npc.mesh = group;
-    npc.label = label;
-    npc.bodyMat = bodyMat;
-    npc.body = body;
-    npc.scale = scale;
-
-    group.position.set(npc.position.x, 0, npc.position.z);
-    group.userData.npcId = id;
-    scene.add(group);
-    npcMeshes.set(id, group);
-
-    return npc;
-}
-
-function createInitialNPCs(count) {
-    // Create families
-    const families = [];
-    for (let i = 0; i < Math.floor(count / 3); i++) {
-        const family = {
-            father: null,
-            mother: null,
-            children: []
-        };
-        const father = createNPC(generateName());
-        const mother = createNPC(generateName(), father.id);
-        father.spouse = mother.id;
-        mother.spouse = father.id;
-        father.family.push(mother.id);
-        mother.family.push(father.id);
-        world.npcs.push(father, mother);
-        family.father = father;
-        family.mother = mother;
-
-        // Children
-        const numChildren = 1 + Math.floor(Math.random() * 3);
-        for (let j = 0; j < numChildren; j++) {
-            const child = createNPC(generateName(), father.id);
-            child.parents = [father.id, mother.id];
-            child.family = [father.id, mother.id];
-            father.family.push(child.id);
-            mother.family.push(child.id);
-            world.npcs.push(child);
-            family.children.push(child);
-        }
-        families.push(family);
-    }
-
-    // Assign homes
-    for (const npc of world.npcs) {
-        if (world.buildings.length > 0) {
-            const b = world.buildings[Math.floor(Math.random() * world.buildings.length)];
-            b.residents.push(npc.id);
-            npc.home = b;
-        }
-    }
-
-    updateUI();
-}
-
-// ============================================================
-// NPC AI
-// ============================================================
-function updateNPC(npc) {
-    if (!npc.isAlive) return;
-
-    const hour = world.hours;
-    const schedule = npc.schedule;
-
-    // Age
-    npc.age += 0.0001 * world.speed;
-    if (npc.age > 70 && Math.random() < 0.0001 * world.speed) {
-        npc.isAlive = false;
-        npc.action = 'Đã qua đời';
-        if (npc.mesh) {
-            npc.mesh.position.y = -0.5;
-            npc.mesh.rotation.x = Math.PI / 2;
-        }
-        return;
-    }
-
-    // Health decay
-    if (npc.isSick) {
-        npc.health -= 0.03 * world.speed;
-    }
-    if (npc.hunger > 85) npc.health -= 0.02 * world.speed;
-    if (npc.thirst > 85) npc.health -= 0.02 * world.speed;
-    if (npc.sleepiness > 85) npc.health -= 0.01 * world.speed;
-    if (npc.happiness < 15) npc.health -= 0.01 * world.speed;
-    if (npc.stress > 85) npc.health -= 0.02 * world.speed;
-    npc.health = Math.min(100, Math.max(0, npc.health));
-
-    if (npc.health <= 0) {
-        npc.isAlive = false;
-        npc.action = 'Đã qua đời';
-        if (npc.mesh) {
-            npc.mesh.position.y = -0.5;
-            npc.mesh.rotation.x = Math.PI / 2;
-        }
-        return;
-    }
-
-    // Schedule
-    if (hour >= schedule.wake && hour < schedule.breakfast) {
-        npc.action = 'Thức dậy';
-        npc.energy = Math.min(100, npc.energy + 3);
-        npc.sleepiness = Math.max(0, npc.sleepiness - 5);
-    } else if (hour >= schedule.breakfast && hour < schedule.work) {
-        npc.action = 'Ăn sáng';
-        npc.hunger = Math.max(0, npc.hunger - 10);
-        npc.happiness = Math.min(100, npc.happiness + 1);
-    } else if (hour >= schedule.work && hour < schedule.lunch) {
-        npc.action = 'Đi làm';
-        npc.isWorking = true;
-        if (npc.home) {
-            npc.targetX = npc.home.x + (Math.random() - 0.5) * 5;
-            npc.targetZ = npc.home.z + (Math.random() - 0.5) * 5;
-        }
-        // If has spouse, maybe interact
-        if (npc.spouse && Math.random() < 0.001 * world.speed) {
-            const spouse = world.npcs.find(n => n.id === npc.spouse);
-            if (spouse && spouse.isAlive) {
-                npc.happiness = Math.min(100, npc.happiness + 2);
-                npc.stress = Math.max(0, npc.stress - 1);
-            }
-        }
-    } else if (hour >= schedule.lunch && hour < schedule.workEnd) {
-        npc.action = 'Ăn trưa';
-        npc.hunger = Math.max(0, npc.hunger - 8);
-        npc.energy = Math.min(100, npc.energy + 5);
-    } else if (hour >= schedule.workEnd && hour < schedule.shopping) {
-        npc.action = 'Tan làm';
-        npc.isWorking = false;
-        npc.money += 10 + Math.random() * 30;
-        // Taxes
-        if (npc.money > 1000) {
-            npc.money -= npc.money * 0.02;
-        }
-    } else if (hour >= schedule.shopping && hour < schedule.home) {
-        npc.action = 'Mua đồ';
-        if (Math.random() < 0.05 * world.speed) {
-            const cost = 5 + Math.random() * 20;
-            if (npc.money >= cost) {
-                npc.money -= cost;
-                npc.happiness = Math.min(100, npc.happiness + 2);
-                npc.stress = Math.max(0, npc.stress - 1);
-            }
-        }
-    } else if (hour >= schedule.home && hour < schedule.relax) {
-        npc.action = 'Về nhà';
-        if (npc.home) {
-            npc.targetX = npc.home.x + (Math.random() - 0.5) * 3;
-            npc.targetZ = npc.home.z + (Math.random() - 0.5) * 3;
-        }
-        // Check if children at home
-        if (npc.children && npc.children.length > 0 && Math.random() < 0.002 * world.speed) {
-            npc.happiness = Math.min(100, npc.happiness + 3);
-        }
-    } else if (hour >= schedule.relax && hour < schedule.sleep) {
-        npc.action = 'Giải trí';
-        npc.happiness = Math.min(100, npc.happiness + 2);
-        npc.stress = Math.max(0, npc.stress - 2);
-        npc.energy = Math.min(100, npc.energy + 2);
-    } else if (hour >= schedule.sleep || hour < schedule.wake) {
-        npc.action = 'Ngủ';
-        npc.isSleeping = true;
-        npc.sleepiness = Math.max(0, npc.sleepiness - 8);
-        npc.energy = Math.min(100, npc.energy + 6);
-        npc.happiness = Math.min(100, npc.happiness + 1);
-    }
-
-    // Natural needs
-    npc.hunger += 0.015 * world.speed;
-    npc.thirst += 0.015 * world.speed;
-    npc.sleepiness += 0.01 * world.speed;
-    npc.energy -= 0.01 * world.speed;
-    npc.happiness -= 0.003 * world.speed;
-    npc.stress += 0.005 * world.speed;
-
-    // Clamp
-    npc.hunger = Math.min(100, Math.max(0, npc.hunger));
-    npc.thirst = Math.min(100, Math.max(0, npc.thirst));
-    npc.sleepiness = Math.min(100, Math.max(0, npc.sleepiness));
-    npc.energy = Math.min(100, Math.max(0, npc.energy));
-    npc.happiness = Math.min(100, Math.max(0, npc.happiness));
-    npc.stress = Math.min(100, Math.max(0, npc.stress));
-
-    // Emotion
-    if (npc.happiness > 70) npc.emotion = 'Vui vẻ';
-    else if (npc.happiness < 25) npc.emotion = 'Buồn bã';
-    else if (npc.stress > 75) npc.emotion = 'Căng thẳng';
-    else if (npc.hunger > 75) npc.emotion = 'Đói';
-    else if (npc.sleepiness > 75) npc.emotion = 'Mệt mỏi';
-    else if (npc.energy < 20) npc.emotion = 'Kiệt sức';
-    else if (npc.isSick) npc.emotion = 'Bệnh';
-    else npc.emotion = 'Bình thường';
-
-    // Movement
-    if (npc.action !== 'Ngủ' && npc.action !== 'Đứng yên' && !npc.isPossessed) {
-        const dx = npc.targetX - npc.position.x;
-        const dz = npc.targetZ - npc.position.z;
-        const dist = Math.sqrt(dx*dx + dz*dz);
-
-        if (dist > 2) {
-            const speed = npc.speed * world.speed * (npc.energy / 100) * (npc.isSick ? 0.5 : 1);
-            npc.position.x += (dx/dist) * speed;
-            npc.position.z += (dz/dist) * speed;
-
-            const limit = WORLD_SIZE/2 - 15;
-            npc.position.x = Math.max(-limit, Math.min(limit, npc.position.x));
-            npc.position.z = Math.max(-limit, Math.min(limit, npc.position.z));
-
-            if (npc.mesh && !npc.isPossessed) {
-                const angle = Math.atan2(dx, dz);
-                npc.mesh.rotation.y = angle;
-                const bob = Math.sin(Date.now() / 300 + npc.id) * 0.05 * npc.scale;
-                npc.mesh.position.y = Math.abs(bob);
-            }
-        } else if (Math.random() < 0.001 * world.speed) {
-            npc.targetX = (Math.random() - 0.5) * 300;
-            npc.targetZ = (Math.random() - 0.5) * 300;
-        }
-    }
-
-    // Update mesh
-    if (npc.mesh && !npc.isPossessed) {
-        npc.mesh.position.x = npc.position.x;
-        npc.mesh.position.z = npc.position.z;
-
-        const emoColors = {
-            'Vui vẻ': 0x4ade80, 'Buồn bã': 0x6366f1, 'Căng thẳng': 0xff6b6b,
-            'Đói': 0xfacc15, 'Mệt mỏi': 0x8395a7, 'Kiệt sức': 0x94a3b8,
-            'Bệnh': 0xef4444, 'Bình thường': 0x48dbfb
-        };
-        const color = emoColors[npc.emotion] || 0x48dbfb;
-        if (npc.bodyMat) npc.bodyMat.color.setHex(color);
-    }
-
-    // Label visibility
-    if (npc.label) {
-        const distToCam = camera.position.distanceTo(npc.mesh.position);
-        npc.label.element.style.display = distToCam < 120 ? 'block' : 'none';
-    }
-}
-
-// ============================================================
-// WORLD UPDATE
-// ============================================================
-function updateWorld() {
-    if (world.isPaused) return;
-    world.tickCount++;
-
-    if (world.tickCount % 2 === 0) {
-        world.hours += 0.05 * world.speed;
-        if (world.hours >= 24) {
-            world.hours = 0;
-            world.days++;
-            if (world.days >= CONFIG.monthLength) {
-                world.days = 0;
-                world.months++;
-                if (world.months >= CONFIG.yearLength) {
-                    world.months = 0;
-                    world.years++;
-                }
-                const seasons = ['Xuân', 'Hạ', 'Thu', 'Đông'];
-                world.season = seasons[Math.floor(world.months / 3) % 4];
-            }
-        }
-    }
-
-    if (world.tickCount % 80 === 0) {
-        const weathers = ['☀️ Nắng', '⛅ Mây', '🌧️ Mưa', '🌤️ Nắng nhẹ', '💨 Gió', '🌫️ Sương mù', '⛈️ Bão'];
-        world.weather = weathers[Math.floor(Math.random() * weathers.length)];
-        world.temperature = 20 + Math.random() * 15 - (world.season === 'Đông' ? 10 : 0);
-        updateLighting();
-
-        // Weather effects on economy
-        if (world.weather === '🌧️ Mưa' || world.weather === '⛈️ Bão') {
-            world.economy -= 0.5;
-        }
-    }
-
-    // Economy update
-    world.economy += (Math.random() - 0.48) * 0.3 * world.speed;
-    world.gdp = Math.max(100000, world.gdp + (Math.random() - 0.49) * 10);
-    world.unemployment = Math.max(2, Math.min(20, world.unemployment + (Math.random() - 0.5) * 0.1));
-
-    // Update NPCs
-    for (const npc of world.npcs) {
-        updateNPC(npc);
-    }
-
-    // Update population
-    world.population = world.npcs.filter(n => n.isAlive).length;
-
-    updateUI();
-}
-
-function updateLighting() {
-    const hour = world.hours;
-    const isNight = hour < 5 || hour > 19;
-    const intensity = isNight ? 0.15 : 1.0;
-
-    sunLight.intensity = 1.2 * intensity;
-    ambientLight.intensity = 0.2 + 0.3 * intensity;
-
-    const skyColor = isNight ? 0x050510 : 0x1a1a3e;
-    scene.background = new THREE.Color(skyColor);
-    scene.fog = new THREE.Fog(skyColor, 250, 600);
-
-    const angle = (hour / 24) * Math.PI * 2;
-    sunLight.position.set(
-        Math.cos(angle) * 120,
-        60 + Math.sin(angle) * 90,
-        Math.sin(angle) * 120
-    );
-}
-
-// ============================================================
-// UI FUNCTIONS
-// ============================================================
-function updateUI() {
-    const alive = world.npcs.filter(n => n.isAlive);
-    const moving = alive.filter(n => n.action && ['Đi làm','Tan làm','Về nhà','Mua đồ','Đi dạo'].includes(n.action));
-    const hungry = alive.filter(n => n.hunger > 70);
-    const tired = alive.filter(n => n.sleepiness > 70);
-    const sick = alive.filter(n => n.isSick);
-
-    timeDisplay.textContent = `⏰ ${Math.floor(world.hours).toString().padStart(2,'0')}:00 - ${world.days+1}/${world.months+1}/${world.years+1}`;
-    weatherDisplay.textContent = `${world.weather} ${Math.round(world.temperature)}°C - ${world.season}`;
-    npcCount.textContent = `👥 ${alive.length}`;
-
-    document.getElementById('s-total').textContent = alive.length;
-    document.getElementById('s-moving').textContent = moving.length;
-    document.getElementById('s-hungry').textContent = hungry.length;
-    document.getElementById('s-tired').textContent = tired.length;
-    document.getElementById('s-sick').textContent = sick.length;
-    document.getElementById('s-buildings').textContent = world.buildings.length;
-    document.getElementById('s-population').textContent = world.population;
-    document.getElementById('s-gdp').textContent = (world.gdp / 1000000).toFixed(1) + 'M';
-    document.getElementById('s-unemployment').textContent = world.unemployment.toFixed(1) + '%';
-
-    // NPC list
-    const list = document.getElementById('npc-list');
-    list.innerHTML = '';
-    const displayNPCs = alive.slice(0, 15);
-    for (const n of displayNPCs) {
-        const item = document.createElement('div');
-        item.className = 'npc-item';
-        const emoji = {
-            'Vui vẻ':'😊', 'Buồn bã':'😢', 'Căng thẳng':'😰',
-            'Đói':'😫', 'Mệt mỏi':'😴', 'Kiệt sức':'😩',
-            'Bệnh':'🤒', 'Bình thường':'😐'
-        }[n.emotion] || '😐';
-        item.innerHTML = `<span>${n.name}</span><span>${emoji}</span>`;
-        item.onclick = () => showNPCInfo(n.id);
-        list.appendChild(item);
-    }
-}
-
-// ============================================================
-// POSSESS NPC
-// ============================================================
-function possessNPC(id) {
-    const npc = world.npcs.find(n => n.id === id);
-    if (!npc || !npc.isAlive) return;
-
-    // Exit current possession
-    exitPossess();
-
-    world.possessedNPC = npc;
-    npc.isPossessed = true;
-    possessStatus.textContent = `👤 ${npc.name}`;
-    exitBtn.style.display = 'inline-block';
-
-    // Move camera to NPC position
-    camera.position.set(npc.position.x + 5, 3, npc.position.z + 5);
-    controls.target.set(npc.position.x, 0, npc.position.z);
-    controls.update();
-
-    // Hide label of possessed NPC
-    if (npc.label) npc.label.element.style.display = 'none';
-
-    console.log(`🎮 Đang nhập vai ${npc.name}`);
-    closeModal();
-}
-
-function exitPossess() {
-    if (world.possessedNPC) {
-        const npc = world.possessedNPC;
-        npc.isPossessed = false;
-        if (npc.label) npc.label.element.style.display = 'block';
-        world.possessedNPC = null;
-        possessStatus.textContent = '👤 Camera';
-        exitBtn.style.display = 'none';
-        console.log('👤 Đã thoát nhập vai');
-    }
-}
-
-// ============================================================
-// NPC INFO
-// ============================================================
-function showNPCInfo(id) {
-    const npc = world.npcs.find(n => n.id === id);
-    if (!npc) return;
-
-    const modal = document.getElementById('npc-modal');
-    const info = document.getElementById('npc-info');
-
-    const family = npc.family.length > 0 ? npc.family.join(', ') : 'Chưa có';
-    const children = npc.children.length > 0 ? npc.children.join(', ') : 'Chưa có';
-    const spouse = npc.spouse ? `Có (ID: ${npc.spouse})` : 'Chưa có';
-
-    info.innerHTML = `
-        <div class="modal-title">${npc.name}</div>
-        <div class="field"><span class="label">Giới tính</span><span class="value">${npc.gender}</span></div>
-        <div class="field"><span class="label">Tuổi</span><span class="value">${Math.floor(npc.age)}</span></div>
-        <div class="field"><span class="label">Nghề nghiệp</span><span class="value highlight">${npc.profession}</span></div>
-        <div class="field"><span class="label">Cảm xúc</span><span class="value">${npc.emotion}</span></div>
-        <div class="field"><span class="label">Hành động</span><span class="value highlight">${npc.action}</span></div>
-        <div class="field"><span class="label">Sức khỏe</span><span class="value">${Math.round(npc.health)}%</span></div>
-        <div class="field"><span class="label">Năng lượng</span><span class="value">${Math.round(npc.energy)}%</span></div>
-        <div class="field"><span class="label">Đói</span><span class="value">${Math.round(npc.hunger)}%</span></div>
-        <div class="field"><span class="label">Hạnh phúc</span><span class="value">${Math.round(npc.happiness)}%</span></div>
-        <div class="field"><span class="label">Căng thẳng</span><span class="value">${Math.round(npc.stress)}%</span></div>
-        <div class="field"><span class="label">Tiền</span><span class="value">${Math.round(npc.money).toLocaleString()}đ</span></div>
-        <div class="field"><span class="label">Gia đình</span><span class="value">${family}</span></div>
-        <div class="field"><span class="label">Vợ/Chồng</span><span class="value">${spouse}</span></div>
-        <div class="field"><span class="label">Con</span><span class="value">${children}</span></div>
-        <button class="possess-btn" onclick="possessNPC(${npc.id})">🎮 Nhập vai ${npc.name}</button>
-    `;
-    modal.classList.add('show');
-}
-
-function closeModal() {
-    document.getElementById('npc-modal').classList.remove('show');
-}
-
-// ============================================================
-// CONTROLS
-// ============================================================
-window.togglePause = function() {
-    world.isPaused = !world.isPaused;
-    pauseBtn.textContent = world.isPaused ? '▶️' : '⏸️';
-    pauseBtn.classList.toggle('active', world.isPaused);
-};
-
-window.setSpeed = function(speed) {
-    world.speed = speed;
-    document.querySelectorAll('#controls button').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('#controls button').forEach(b => {
-        if (b.textContent.includes(speed + 'x')) b.classList.add('active');
-    });
-};
-
-window.addRandomNPC = function() {
-    const npc = createNPC();
-    world.npcs.push(npc);
-    if (world.buildings.length > 0) {
-        const b = world.buildings[Math.floor(Math.random() * world.buildings.length)];
-        b.residents.push(npc.id);
-        npc.home = b;
-    }
-    updateUI();
-};
-
-window.toggleSidebar = function() {
-    sidebar.classList.toggle('show');
-};
-
-window.toggleCamera = function() {
-    if (world.possessedNPC) {
-        // If possessed, switch between first person and third person
-        const npc = world.possessedNPC;
-        if (camera.position.y < 5) {
-            camera.position.set(npc.position.x + 8, 5, npc.position.z + 8);
+        let blob;
+        if (typeof content === 'string') {
+          blob = new Blob([content], { type: mime });
         } else {
-            camera.position.set(npc.position.x + 1, 1.7, npc.position.z + 2);
+          blob = new Blob([content], { type: mime });
         }
-        controls.target.set(npc.position.x, 0, npc.position.z);
-        controls.update();
-        return;
+        blobMap[path] = URL.createObjectURL(blob);
+
+        done++;
+        progressFill.style.width = (40 + (done / total) * 50) + '%';
+      }
+
+      // 5. Rewrite index.html để mọi link tương đối trỏ tới blob URL
+      const htmlRaw = await zip.files[htmlPath].async('string');
+      const baseDir = htmlPath.includes('/') 
+        ? htmlPath.substring(0, htmlPath.lastIndexOf('/') + 1) 
+        : '';
+
+      const htmlRewritten = rewriteHtml(htmlRaw, baseDir, blobMap, htmlPath);
+
+      // 6. Tạo blob URL cho html đã rewrite
+      if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+      currentBlobUrl = URL.createObjectURL(
+        new Blob([htmlRewritten], { type: 'text/html' })
+      );
+
+      progressFill.style.width = '100%';
+
+      // 7. Load vào iframe
+      loadPreview(currentBlobUrl, htmlPath, entries);
+
+      showStatus('✅ Giải nén thành công! Đang mở web...', 'success');
+
+      // Chuyển sang tab preview sau 500ms
+      setTimeout(() => {
+        document.querySelector('[data-tab="preview"]').click();
+      }, 500);
+
+    } catch (err) {
+      console.error(err);
+      showStatus('❌ Lỗi: ' + err.message, 'error');
+      progressFill.style.width = '0%';
+    } finally {
+      extractBtn.disabled = false;
+    }
+  });
+
+  // ===== Tìm file HTML entry =====
+  function findEntryHtml(entries) {
+    // Ưu tiên: index.html ở root
+    if (entries.includes('index.html')) return 'index.html';
+    if (entries.includes('index.htm')) return 'index.htm';
+    // Sau đó: index.html trong 1 folder duy nhất
+    const idx = entries.find(n => /^(?:[^/]+\/)?index\.html?$/i.test(n));
+    if (idx) return idx;
+    // Cuối cùng: bất kỳ .html nào
+    return entries.find(n => /\.html?$/i.test(n)) || null;
+  }
+
+  // ===== MIME types =====
+  function getMime(ext) {
+    const map = {
+      html:'text/html', htm:'text/html', css:'text/css',
+      js:'application/javascript', mjs:'application/javascript',
+      json:'application/json', xml:'application/xml',
+      svg:'image/svg+xml', png:'image/png', jpg:'image/jpeg',
+      jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp',
+      ico:'image/x-icon', woff:'font/woff', woff2:'font/woff2',
+      ttf:'font/ttf', otf:'font/otf', eot:'application/vnd.ms-fontobject',
+      mp4:'video/mp4', webm:'video/webm', mp3:'audio/mpeg',
+      wav:'audio/wav', pdf:'application/pdf', txt:'text/plain',
+      md:'text/plain', map:'application/json'
+    };
+    return map[ext] || 'application/octet-stream';
+  }
+
+  // ===== Rewrite HTML: đổi src/href tương đối thành blob URL =====
+  function rewriteHtml(html, baseDir, blobMap, htmlPath) {
+    // Resolve đường dẫn tương đối → path trong zip
+    function resolvePath(ref, base) {
+      if (/^(https?:|data:|blob:|mailto:|javascript:|#|\/\/)/i.test(ref)) return null;
+      // Bỏ query/hash
+      const clean = ref.split('?')[0].split('#')[0];
+      if (!clean) return null;
+
+      // Chuẩn hoá path (xử lý ../ ./)
+      const parts = (base + clean).split('/');
+      const stack = [];
+      for (const p of parts) {
+        if (p === '' || p === '.') continue;
+        if (p === '..') stack.pop();
+        else stack.push(p);
+      }
+      return stack.join('/');
     }
 
-    const pos = camera.position;
-    if (pos.y > 120) {
-        camera.position.set(100, 80, 100);
-    } else if (pos.y > 60) {
-        camera.position.set(0, 30, 100);
-    } else {
-        camera.position.set(0, 180, 0.1);
-    }
-    controls.target.set(0, 0, 0);
-    controls.update();
-};
+    let result = html;
 
-window.teleportToCountry = function(countryId) {
-    if (!countryId) return;
-    const country = world.countries.find(c => c.id == countryId);
-    if (country) {
-        camera.position.set(country.x + 80, 60, country.z + 80);
-        controls.target.set(country.x, 0, country.z);
-        controls.update();
-    }
-    document.getElementById('country-select').style.display = 'none';
-};
+    // Rewrite các attribute: src, href, data-src, poster, action
+    const attrRegex = /\b(src|href|data-src|poster|action|srcset)\s*=\s*["']([^"']+)["']/gi;
 
-window.exitPossess = exitPossess;
+    result = result.replace(attrRegex, (match, attr, value) => {
+      // srcset đặc biệt (nhiều url)
+      if (attr.toLowerCase() === 'srcset') {
+        const newVal = value.split(',').map(part => {
+          const [url, descriptor] = part.trim().split(/\s+/);
+          const resolved = resolvePath(url, baseDir);
+          if (resolved && blobMap[resolved]) {
+            return descriptor ? blobMap[resolved] + ' ' + descriptor : blobMap[resolved];
+          }
+          return part.trim();
+        }).join(', ');
+        return `${attr}="${newVal}"`;
+      }
 
-// ============================================================
-// KEYBOARD SHORTCUTS
-// ============================================================
-document.addEventListener('keydown', (e) => {
-    if (e.key === ' ' || e.key === 'p') { e.preventDefault(); togglePause(); }
-    if (e.key === '1') setSpeed(1);
-    if (e.key === '2') setSpeed(2);
-    if (e.key === '5') setSpeed(5);
-    if (e.key === 'Escape') { closeModal(); exitPossess(); }
-    if (e.key === 'c') toggleCamera();
-    if (e.key === 'm') {
-        const sel = document.getElementById('country-select');
-        sel.style.display = sel.style.display === 'none' ? 'block' : 'none';
-    }
-});
+      const resolved = resolvePath(value, baseDir);
+      if (resolved && blobMap[resolved]) {
+        return `${attr}="${blobMap[resolved]}"`;
+      }
+      return match;
+    });
 
-// ============================================================
-// RAYCASTER - Click NPC
-// ============================================================
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
+    // Rewrite CSS url(...) inline
+    result = result.replace(/url\(\s*['"]?([^'"\)]+)['"]?\s*\)/gi, (m, url) => {
+      const resolved = resolvePath(url, baseDir);
+      if (resolved && blobMap[resolved]) return `url("${blobMap[resolved]}")`;
+      return m;
+    });
 
-renderer.domElement.addEventListener('click', (event) => {
-    const rect = renderer.domElement.getBoundingClientRect();
-    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    return result;
+  }
 
-    raycaster.setFromCamera(pointer, camera);
+  // ===== Load preview =====
+  function loadPreview(blobUrl, htmlPath, entries) {
+    emptyPreview.style.display = 'none';
+    previewFrame.style.display = 'block';
+    previewFrame.src = blobUrl;
+    urlBar.textContent = '📄 ' + htmlPath + '  (blob://)';
 
-    const meshes = [];
-    for (const [id, mesh] of npcMeshes) {
-        meshes.push(mesh);
-    }
-    for (const b of world.buildings) {
-        if (b.mesh) meshes.push(b.mesh);
-    }
+    // Render file tree
+    fileTree.innerHTML = entries
+      .map(p => `<div class="file-item">${escapeHtml(p)}</div>`)
+      .join('');
+  }
 
-    const intersects = raycaster.intersectObjects(meshes, true);
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    })[c]);
+  }
 
-    if (intersects.length > 0) {
-        let npcId = null;
-        let obj = intersects[0].object;
-        while (obj) {
-            if (obj.userData && obj.userData.npcId) {
-                npcId = obj.userData.npcId;
-                break;
-            }
-            obj = obj.parent;
-        }
+  // ===== Open in new tab =====
+  openNewTabBtn.addEventListener('click', () => {
+    if (currentBlobUrl) window.open(currentBlobUrl, '_blank');
+  });
 
-        if (!npcId) {
-            for (const [id, mesh] of npcMeshes) {
-                if (mesh === intersects[0].object || mesh.children.includes(intersects[0].object)) {
-                    npcId = id;
-                    break;
-                }
-            }
-        }
+  // ===== Toggle file tree =====
+  showTreeBtn.addEventListener('click', () => {
+    fileTree.classList.toggle('show');
+  });
 
-        if (npcId) {
-            const npc = world.npcs.find(n => n.id === npcId);
-            if (npc && npc.isAlive) {
-                showNPCInfo(npcId);
-                return;
-            }
-        }
+  // ===== Clear =====
+  clearBtn.addEventListener('click', () => {
+    if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+    currentBlobUrl = null;
+    previewFrame.src = 'about:blank';
+    previewFrame.style.display = 'none';
+    emptyPreview.style.display = 'flex';
+    urlBar.textContent = 'about:blank';
+    fileTree.innerHTML = '';
+    fileTree.classList.remove('show');
+    showStatus('', '');
+  });
 
-        // Check building
-        for (const b of world.buildings) {
-            if (b.mesh && (b.mesh === intersects[0].object || b.mesh.children.includes(intersects[0].object))) {
-                const info = document.getElementById('building-info');
-                info.textContent = `🏠 ${b.name} | Cư dân: ${b.residents.length} | ${b.lightsOn ? '💡 Có đèn' : '🌑 Tối'}`;
-                info.style.display = 'block';
-                setTimeout(() => { info.style.display = 'none'; }, 3000);
-                break;
-            }
-        }
-    }
-});
+  // ===== Reset (upload tab) =====
+  resetBtn.addEventListener('click', () => {
+    selectedFile = null;
+    fileInput.value = '';
+    fileInfo.classList.remove('show');
+    progressBar.classList.remove('show');
+    progressFill.style.width = '0%';
+    extractBtn.disabled = true;
+    showStatus('', '');
+  });
 
-// ============================================================
-// FPS COUNTER
-// ============================================================
-let frameCount = 0, lastFpsUpdate = Date.now();
-
-// ============================================================
-// RESIZE
-// ============================================================
-window.addEventListener('resize', () => {
-    const w = container.clientWidth;
-    const h = container.clientHeight;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
-    labelRenderer.setSize(w, h);
-});
-
-// ============================================================
-// ANIMATION LOOP
-// ============================================================
-function animate() {
-    requestAnimationFrame(animate);
-    updateWorld();
-
-    frameCount++;
-    const now = Date.now();
-    if (now - lastFpsUpdate > 1000) {
-        fpsDisplay.textContent = `⚡ ${frameCount}`;
-        frameCount = 0;
-        lastFpsUpdate = now;
-    }
-
-    controls.update();
-    renderer.render(scene, camera);
-    labelRenderer.render(scene, camera);
-}
-
-// ============================================================
-// INIT
-// ============================================================
-console.log('🌍 Thế giới thực hoàn chỉnh');
-console.log(`🏙️ Buildings: ${world.buildings.length}`);
-console.log(`🌐 Countries: ${world.countries.length}`);
-console.log(`👥 NPC: ${world.npcs.length}`);
-console.log('📌 Click NPC → Xem thông tin và nhập vai');
-console.log('📌 Scroll → Zoom');
-console.log('📌 Kéo → Xoay');
-console.log('📌 Phím M → Chọn quốc gia');
-console.log('📌 Phím ESC → Thoát nhập vai');
-
-createInitialNPCs(60);
-animate();
-
-window.world = world;
-window.scene = scene;
-window.camera = camera;
-window.controls = controls;
-window.possessNPC = possessNPC;
-window.exitPossess = exitPossess;
-
-console.log('✅ Đã sẵn sàng!');
+})();
 </script>
 </body>
 </html>
