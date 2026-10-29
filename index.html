@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>WebClip Master Ultimate</title>
+<title>WebClip Auto-Embed US</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body {
@@ -68,8 +68,15 @@ button small { font-size: 9px; opacity: 0.8; font-weight: 600; }
 <body>
 
 <div class="container">
-    <h1>WEBCLIP MASTER ULTIMATE</h1>
-    <div class="subtitle">Auto-parse US, Nhúng US, Ẩn URL, Icon Base64</div>
+    <h1>WEBCLIP AUTO-EMBED US</h1>
+    <div class="subtitle">Tự động bóc tách link và nhúng code UserScript</div>
+
+    <div class="hint">
+        <b>Hướng dẫn:</b><br>
+        1. Dán code UserScript vào ô 1.<br>
+        2. Bấm <b>TRÍCH XUẤT LINK TỪ US</b> -> Nó tự điền các link có trong <code>@match</code>.<br>
+        3. Bấm <b>TẠO CONFIG</b> -> Code US sẽ được nhúng thẳng vào HTML của WebClip.
+    </div>
 
     <!-- 1. USERSCRIPT -->
     <div class="card" style="border-color: #f59e0b;">
@@ -230,6 +237,7 @@ Tự động tích hợp UserScript.</textarea>
     $('add-web').onclick = function() { addWebRow('', '', 'web'); };
     addWebRow('Web 1', 'https://ph4nt0m.lol', 'web');
 
+    // --- TRÍCH XUẤT LINK ---
     $('parse-us-btn').onclick = function() {
         var code = $('userscript-code').value;
         if (!code) {
@@ -238,16 +246,26 @@ Tự động tích hợp UserScript.</textarea>
             return;
         }
 
-        var matchRegex = /@match\s+(https?:\/\/[^\s]+)/g;
+        var lines = code.split('\n');
         var matches = [];
-        var m;
-        while ((m = matchRegex.exec(code)) !== null) {
-            var domain = m[1].replace(/\/\*$/, '').replace(/\/$/, '');
-            if (matches.indexOf(domain) === -1) matches.push(domain);
-        }
+
+        lines.forEach(function(line) {
+            if (line.indexOf('@match') === -1) return;
+            var parts = line.trim().split(/\s+/);
+            for (var i = 0; i < parts.length; i++) {
+                var p = parts[i];
+                if (p.indexOf('http') === 0) {
+                    var cleanUrl = p.replace(/\/\*$/, '').replace(/\/$/, '').replace(/,$/, '');
+                    if (matches.indexOf(cleanUrl) === -1) {
+                        matches.push(cleanUrl);
+                    }
+                    break;
+                }
+            }
+        });
 
         if (matches.length === 0) {
-            $('status').textContent = 'Không tìm thấy @match nào trong code!';
+            $('status').textContent = 'Không tìm thấy @match nào! Kiểm tra lại code US.';
             $('status').className = 'status error';
             return;
         }
@@ -257,10 +275,11 @@ Tự động tích hợp UserScript.</textarea>
             addWebRow('Web ' + (index + 1), link, 'web');
         });
 
-        $('status').textContent = 'Đã tìm thấy ' + matches.length + ' link! Đã tự động điền.';
+        $('status').textContent = 'Đã tìm thấy ' + matches.length + ' link! Đã điền tự động.';
         $('status').className = 'status';
     };
 
+    // --- TẠO HTML LƯỚI (CÓ NHÚNG US) ---
     function buildLauncherHtml(items, title, usCode) {
         var itemsJson = JSON.stringify(items);
         var safeUsCode = usCode ? usCode.replace(/<\/script>/gi, '<\\/script>') : '';
@@ -370,7 +389,7 @@ Tự động tích hợp UserScript.</textarea>
         }
 
         $('download-row').style.display = 'grid';
-        $('status').textContent = 'Tạo thành công!';
+        $('status').textContent = 'Tạo thành công! (Đã nhúng code US vào WebClip)';
         $('status').className = 'status';
         btn.disabled = false;
     };
