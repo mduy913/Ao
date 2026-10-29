@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>WebClip Auto-Embed US</title>
+<title>WebClip Direct Injector</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body {
@@ -68,14 +68,13 @@ button small { font-size: 9px; opacity: 0.8; font-weight: 600; }
 <body>
 
 <div class="container">
-    <h1>WEBCLIP AUTO-EMBED US</h1>
-    <div class="subtitle">Tự động bóc tách link và nhúng code UserScript</div>
+    <h1>WEBCLIP DIRECT INJECTOR</h1>
+    <div class="subtitle">Tải HTML web đích + Đè code UserScript trực tiếp</div>
 
     <div class="hint">
-        <b>Hướng dẫn:</b><br>
-        1. Dán code UserScript vào ô 1.<br>
-        2. Bấm <b>TRÍCH XUẤT LINK TỪ US</b> -> Nó tự điền các link có trong <code>@match</code>.<br>
-        3. Bấm <b>TẠO CONFIG</b> -> Code US sẽ được nhúng thẳng vào HTML của WebClip.
+        <b>Chế độ Đè Code (Mới):</b><br>
+        Khi bật công tắc bên dưới, WebClip sẽ dùng <code>fetch</code> tải HTML của web đích, chèn code UserScript của bạn vào, rồi render lại toàn bộ.<br>
+        <span style="color:#fca5a5">* Lưu ý: Nếu web chặn CORS, trang sẽ bị trắng.</span>
     </div>
 
     <!-- 1. USERSCRIPT -->
@@ -83,7 +82,7 @@ button small { font-size: 9px; opacity: 0.8; font-weight: 600; }
         <div class="label" style="color: #f59e0b;">1. NHẬP USERSCRIPT</div>
         <div class="field">
             <label>Code .user.js (Dán toàn bộ code vào đây)</label>
-            <textarea id="userscript-code" placeholder="// ==UserScript==&#10;// @name  My Script&#10;// @match https://ph4nt0m.lol/*&#10;// ==/UserScript=="></textarea>
+            <textarea id="userscript-code" placeholder="// ==UserScript==&#10;// @name  My Script&#10;// @match https://client.trollmodz.store/*&#10;// ==/UserScript=="></textarea>
         </div>
         <button class="add-btn" id="parse-us-btn" style="background: rgba(245,158,11,0.2); border-color: #f59e0b; color: #f59e0b;">⚡ TRÍCH XUẤT LINK TỪ US</button>
     </div>
@@ -109,6 +108,17 @@ button small { font-size: 9px; opacity: 0.8; font-weight: 600; }
             <input type="text" id="grid-title" placeholder="Chọn web hoặc app" value="Chọn web hoặc app">
         </div>
         
+        <label class="switch-row" style="border-color: #ef4444;">
+            <span class="switch-label" style="color: #fca5a5;">
+                <b>ĐÈ CODE US TRỰC TIẾP VÀO WEB</b>
+                <small>Dùng fetch + document.write (Cần CORS)</small>
+            </span>
+            <label class="switch">
+                <input type="checkbox" id="opt-inject-us">
+                <span class="slider" style="background-color: rgba(255,255,255,0.1);"></span>
+            </label>
+        </label>
+
         <label class="switch-row" style="border-color: rgba(168,85,247,0.5);">
             <span class="switch-label" style="color: #a855f7;">
                 <b>ẨN URL THẬT</b>
@@ -235,7 +245,7 @@ Tự động tích hợp UserScript.</textarea>
         webListEl.appendChild(row);
     }
     $('add-web').onclick = function() { addWebRow('', '', 'web'); };
-    addWebRow('Web 1', 'https://ph4nt0m.lol', 'web');
+    addWebRow('Web 1', 'https://client.trollmodz.store', 'web');
 
     // --- TRÍCH XUẤT LINK ---
     $('parse-us-btn').onclick = function() {
@@ -279,11 +289,36 @@ Tự động tích hợp UserScript.</textarea>
         $('status').className = 'status';
     };
 
-    // --- TẠO HTML LƯỚI (CÓ NHÚNG US) ---
-    function buildLauncherHtml(items, title, usCode) {
+    // --- TẠO HTML (CÓ CẢ 2 CHẾ ĐỘ) ---
+    function buildLauncherHtml(items, title, usCode, injectMode) {
         var itemsJson = JSON.stringify(items);
         var safeUsCode = usCode ? usCode.replace(/<\/script>/gi, '<\\/script>') : '';
 
+        // CHẾ ĐỘ ĐÈ CODE TRỰC TIẾP VÀO WEB
+        if (injectMode && items.length === 1 && usCode) {
+            return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>' + title + '</title>' +
+            '<style>body{margin:0;padding:0;overflow:hidden;background:#000;color:#fff;font-family:sans-serif;}</style></head><body>' +
+            '<div id="loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:9999;">Đang tải và đè code...</div>' +
+            '<iframe id="web-frame" style="width:100vw;height:100vh;border:none;position:absolute;top:0;left:0;z-index:1;"></iframe>' +
+            '<script>\n' +
+            'var targetUrl = "' + items[0].url + '";\n' +
+            'var usCode = `' + safeUsCode.replace(/`/g, '\\`') + '`;\n' +
+            'fetch(targetUrl).then(function(res) {\n' +
+            '  if (!res.ok) throw new Error("HTTP " + res.status);\n' +
+            '  return res.text();\n' +
+            '}).then(function(html) {\n' +
+            '  var finalHtml = html.replace(/<\\/body>/i, "<script>\\n" + usCode + "\\n<\\/script></body>");\n' +
+            '  var frame = document.getElementById("web-frame");\n' +
+            '  frame.srcdoc = finalHtml;\n' +
+            '  document.getElementById("loading").style.display = "none";\n' +
+            '}).catch(function(err) {\n' +
+            '  document.getElementById("loading").innerHTML = "Lỗi: Không thể tải web (CORS).<br><small>" + err.message + "</small>";\n' +
+            '  document.getElementById("loading").style.color = "#ef4444";\n' +
+            '});\n' +
+            '<\/script></body></html>';
+        }
+
+        // CHẾ ĐỘ LƯỚI BÌNH THƯỜNG
         return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>'+title+'</title>' +
         '<style>*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}body{font-family:-apple-system,sans-serif;background:#0a0a1a;color:#fff;min-height:100vh;padding:24px 16px;}' +
         'h1{font-size:24px;text-align:center;margin-bottom:28px;color:#a855f7;font-weight:900;}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;max-width:600px;margin:0 auto;}' +
@@ -356,10 +391,11 @@ Tự động tích hợp UserScript.</textarea>
         var appName = $('app-name').value.trim() || 'MDUY';
         var gridTitle = $('grid-title').value.trim() || 'Chọn để mở';
         var hideUrl = $('opt-hide-url').checked;
+        var injectMode = $('opt-inject-us').checked; // Kiểm tra công tắc đè code
         var userScript = $('userscript-code').value.trim();
         var profileDesc = $('profile-desc').value.trim() || 'WebClip tạo bởi MDUY';
 
-        var launcherHtml = buildLauncherHtml(items, gridTitle, userScript);
+        var launcherHtml = buildLauncherHtml(items, gridTitle, userScript, injectMode);
         var base64Html = btoa(unescape(encodeURIComponent(launcherHtml)));
         var finalUrl = 'data:text/html;charset=utf-8;base64,' + base64Html;
 
@@ -389,7 +425,7 @@ Tự động tích hợp UserScript.</textarea>
         }
 
         $('download-row').style.display = 'grid';
-        $('status').textContent = 'Tạo thành công! (Đã nhúng code US vào WebClip)';
+        $('status').textContent = 'Tạo thành công!';
         $('status').className = 'status';
         btn.disabled = false;
     };
