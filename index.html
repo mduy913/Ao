@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>WebClip Auto-Builder</title>
+<title>WebClip Master Ultimate</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body {
@@ -50,9 +50,10 @@ input:checked + .slider:before { transform: translateX(20px); background-color: 
 button.main-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #a855f7, #ec4899); border: none; border-radius: 12px; color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 8px; }
 button.main-btn:disabled { opacity: 0.5; }
 .download-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
-button.install-btn, button.save-btn { padding: 16px 8px; border: none; border-radius: 12px; color: #fff; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+button.install-btn, button.save-btn, button.userscript-btn { padding: 16px 8px; border: none; border-radius: 12px; color: #fff; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 button.install-btn { background: linear-gradient(135deg, #22c55e, #16a34a); }
 button.save-btn { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+button.userscript-btn { width: 100%; background: linear-gradient(135deg, #f59e0b, #d97706); margin-top: 8px; }
 button small { font-size: 9px; opacity: 0.8; font-weight: 600; }
 
 .status { font-size: 12px; text-align: center; padding: 12px; color: #22c55e; background: rgba(0,0,0,0.3); border-radius: 10px; margin-top: 12px; }
@@ -67,17 +68,10 @@ button small { font-size: 9px; opacity: 0.8; font-weight: 600; }
 <body>
 
 <div class="container">
-    <h1>WEBCLIP AUTO-BUILDER</h1>
-    <div class="subtitle">Tự động phân tích UserScript để tạo WebClip</div>
+    <h1>WEBCLIP MASTER ULTIMATE</h1>
+    <div class="subtitle">Auto-parse US, Nhúng US, Ẩn URL, Icon Base64</div>
 
-    <div class="hint">
-        <b>Tính năng Auto:</b><br>
-        1. Dán code UserScript vào ô bên dưới.<br>
-        2. Bấm "TRÍCH XUẤT LINK TỪ US" -> Tool tự tìm dòng <code>@match</code> để điền link web.<br>
-        3. Bấm "TẠO CONFIG" -> Code US sẽ được tự động nhúng vào HTML của WebClip.
-    </div>
-
-    <!-- USERSCRIPT (Đưa lên đầu để Auto-fill) -->
+    <!-- 1. USERSCRIPT -->
     <div class="card" style="border-color: #f59e0b;">
         <div class="label" style="color: #f59e0b;">1. NHẬP USERSCRIPT</div>
         <div class="field">
@@ -87,7 +81,7 @@ button small { font-size: 9px; opacity: 0.8; font-weight: 600; }
         <button class="add-btn" id="parse-us-btn" style="background: rgba(245,158,11,0.2); border-color: #f59e0b; color: #f59e0b;">⚡ TRÍCH XUẤT LINK TỪ US</button>
     </div>
 
-    <!-- CẤU HÌNH WEBCLIP -->
+    <!-- 2. CẤU HÌNH -->
     <div class="card">
         <div class="label">2. CẤU HÌNH CHUNG</div>
         <div class="field">
@@ -120,7 +114,7 @@ button small { font-size: 9px; opacity: 0.8; font-weight: 600; }
         </label>
     </div>
 
-    <!-- SỐ LƯỢNG ICON -->
+    <!-- 3. SỐ LƯỢNG -->
     <div class="card">
         <div class="label">3. SỐ WEBCLIP CẦN TẠO <small id="count-display">1 icon</small></div>
         <div class="count-row">
@@ -131,18 +125,14 @@ button small { font-size: 9px; opacity: 0.8; font-weight: 600; }
         </div>
     </div>
 
-    <!-- DANH SÁCH WEB/APP -->
+    <!-- 4. WEB/APP -->
     <div class="card">
         <div class="label">4. DANH SÁCH WEB / APP</div>
         <div id="web-list"></div>
         <button class="add-btn" id="add-web">+ Thêm mục</button>
-        <div class="notice-box">
-            <b>Web</b>: mở trong WebClip.<br>
-            <b>App</b>: mở Safari (Telegram, Zalo...).
-        </div>
     </div>
 
-    <!-- MÔ TẢ PROFILE -->
+    <!-- 5. MÔ TẢ -->
     <div class="card">
         <div class="label">5. THÔNG TIN PROFILE</div>
         <div class="field">
@@ -152,20 +142,21 @@ Tự động tích hợp UserScript.</textarea>
         </div>
     </div>
 
-    <button class="main-btn" id="create-btn">TẠO CONFIG (NHÚNG USERSCRIPT)</button>
+    <button class="main-btn" id="create-btn">TẠO CONFIG</button>
     <div class="status" id="status">Sẵn sàng</div>
 
     <div class="download-row" id="download-row" style="display:none;">
         <button class="install-btn" id="install-btn">CÀI NGAY<small>Mở cài đặt</small></button>
         <button class="save-btn" id="save-btn">LƯU TỆP<small>Tải .mobileconfig</small></button>
     </div>
+    <button class="userscript-btn" id="userscript-btn" style="display:none;">TẢI USERSCRIPT (.user.js)<small>Dùng để cài vào Stay</small></button>
 </div>
 
 <script>
 (function() {
     'use strict';
     var $ = function(id) { return document.getElementById(id); };
-    var configFile = null, configBlobUrl = null;
+    var configFile = null, configBlobUrl = null, userScriptBlobUrl = null;
     var iconBase64 = null, currentCount = 1;
 
     function generateUUID() {
@@ -175,7 +166,6 @@ Tự động tích hợp UserScript.</textarea>
         });
     }
 
-    // --- Count ---
     document.querySelectorAll('.count-btn').forEach(function(btn) {
         btn.onclick = function() {
             currentCount = parseInt(btn.getAttribute('data-count'));
@@ -185,7 +175,6 @@ Tự động tích hợp UserScript.</textarea>
         };
     });
 
-    // --- Icon Xử lý ---
     var previewEl = $('icon-preview');
     function fetchIconAsBase64(url) {
         return new Promise(function(resolve, reject) {
@@ -227,7 +216,6 @@ Tự động tích hợp UserScript.</textarea>
         reader.readAsDataURL(file);
     });
 
-    // --- Web List ---
     var webListEl = $('web-list');
     function addWebRow(name, url, type) {
         var row = document.createElement('div');
@@ -242,7 +230,6 @@ Tự động tích hợp UserScript.</textarea>
     $('add-web').onclick = function() { addWebRow('', '', 'web'); };
     addWebRow('Web 1', 'https://ph4nt0m.lol', 'web');
 
-    // --- Tự động trích xuất link từ UserScript ---
     $('parse-us-btn').onclick = function() {
         var code = $('userscript-code').value;
         if (!code) {
@@ -251,7 +238,6 @@ Tự động tích hợp UserScript.</textarea>
             return;
         }
 
-        // Tìm dòng @match
         var matchRegex = /@match\s+(https?:\/\/[^\s]+)/g;
         var matches = [];
         var m;
@@ -266,10 +252,7 @@ Tự động tích hợp UserScript.</textarea>
             return;
         }
 
-        // Xoá danh sách cũ
         webListEl.innerHTML = '';
-        
-        // Thêm các link tìm được vào danh sách
         matches.forEach(function(link, index) {
             addWebRow('Web ' + (index + 1), link, 'web');
         });
@@ -278,16 +261,9 @@ Tự động tích hợp UserScript.</textarea>
         $('status').className = 'status';
     };
 
-    // --- Tạo HTML Lưới (Nhúng UserScript vào) ---
     function buildLauncherHtml(items, title, usCode) {
         var itemsJson = JSON.stringify(items);
-        
-        // Xử lý US code để nhúng an toàn vào HTML
-        var safeUsCode = '';
-        if (usCode) {
-            // Loại bỏ thẻ </script> nếu có trong code US để tránh làm gãy HTML
-            safeUsCode = usCode.replace(/<\/script>/gi, '<\\/script>');
-        }
+        var safeUsCode = usCode ? usCode.replace(/<\/script>/gi, '<\\/script>') : '';
 
         return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>'+title+'</title>' +
         '<style>*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}body{font-family:-apple-system,sans-serif;background:#0a0a1a;color:#fff;min-height:100vh;padding:24px 16px;}' +
@@ -296,28 +272,20 @@ Tự động tích hợp UserScript.</textarea>
         '.tile:active{transform:scale(0.95);background:rgba(255,255,255,0.1);}.tile .icon{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#a855f7,#ec4899);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;margin-bottom:10px;}' +
         '.tile.app .icon{background:linear-gradient(135deg,#22c55e,#16a34a);}.tile .name{font-size:12px;font-weight:700;color:#fff;word-break:break-word;line-height:1.3;}' +
         '.badge{position:absolute;top:6px;right:6px;background:#22c55e;color:#fff;font-size:8px;padding:2px 5px;border-radius:6px;font-weight:800;}</style></head><body>' +
-        '<h1>'+title+'</h1><div class="grid" id="grid"></div>' +
-        
-        // Script điều hướng chính
-        '<script>' +
+        '<h1>'+title+'</h1><div class="grid" id="grid"></div><script>' +
         'var items = '+itemsJson+';\n' +
         'function nav(url, tab){var a=document.createElement("a");a.href=url;a.target=tab?"_blank":"_self";document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},100);}\n' +
         'items.forEach(function(w){var t=document.createElement("div");t.className="tile "+(w.type==="app"?"app":"");' +
         't.innerHTML=\'<div class="icon">\'+w.name.charAt(0).toUpperCase()+\'</div><div class="name">\'+w.name+\'</div>\'+(w.type==="app"?\'<div class="badge">APP</div>\':\'\');' +
         't.onclick=function(){nav(w.url, w.type==="app");};document.getElementById("grid").appendChild(t);});' +
         '<\/script>' +
-        
-        // Nhúng UserScript vào cuối trang
         (usCode ? '<script>\n' + safeUsCode + '\n<\/script>' : '') +
-        
         '</body></html>';
     }
 
-    // --- Tạo Payload WebClip ---
     function buildPayload(name, url, base64, baseId, index, desc) {
         var uuid = generateUUID();
         var iconXml = base64 ? '            <key>Icon</key>\n            <data>'+base64+'</data>\n' : '';
-        
         return [
             '        <dict>',
             '            <key>FullScreen</key>',
@@ -350,7 +318,6 @@ Tự động tích hợp UserScript.</textarea>
         ].join('\n');
     }
 
-    // --- Tạo Config ---
     $('create-btn').onclick = function() {
         var btn = $('create-btn');
         btn.disabled = true;
@@ -373,45 +340,49 @@ Tự động tích hợp UserScript.</textarea>
         var userScript = $('userscript-code').value.trim();
         var profileDesc = $('profile-desc').value.trim() || 'WebClip tạo bởi MDUY';
 
-        // Tạo HTML Lưới (Có nhúng US)
         var launcherHtml = buildLauncherHtml(items, gridTitle, userScript);
         var base64Html = btoa(unescape(encodeURIComponent(launcherHtml)));
         var finalUrl = 'data:text/html;charset=utf-8;base64,' + base64Html;
 
-        if (!hideUrl && items.length === 1) {
-            finalUrl = items[0].url;
-        }
+        if (!hideUrl && items.length === 1) finalUrl = items[0].url;
 
         var masterId = 'com.mduy.webclip.' + generateUUID().substring(0, 8);
-
         var payloads = [];
+        
         for (var i = 0; i < currentCount; i++) {
             var displayName = currentCount > 1 ? (appName + ' ' + (i + 1)) : appName;
             payloads.push(buildPayload(displayName, finalUrl, iconBase64, masterId, i, profileDesc));
         }
 
         var config = '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n    <key>PayloadContent</key>\n    <array>\n' +
-        payloads.join('\n') + '\n    </array>\n    <key>PayloadDescription</key>\n    <string>' + esc(profileDesc) + '</string>\n    <key>PayloadDisplayName</key>\n    <string>' + esc(appName) + '</string>\n    <key>PayloadIdentifier</key>\n    <string>' + masterId + '</string>\n    <key>PayloadOrganization</key>\n    <string>MDUY</string>\n    <key>PayloadType</key>\n    <string>Configuration</string>\n    <key>PayloadUUID</key>\n    <string>' + generateUUID() + '</string>\n    <key>PayloadVersion</key>\n    <integer>1</integer>\n</dict>\n</plist>';
+            payloads.join('\n') + '\n    </array>\n    <key>PayloadDescription</key>\n    <string>' + esc(profileDesc) + '</string>\n    <key>PayloadDisplayName</key>\n    <string>' + esc(appName) + '</string>\n    <key>PayloadIdentifier</key>\n    <string>' + masterId + '</string>\n    <key>PayloadOrganization</key>\n    <string>MDUY</string>\n    <key>PayloadType</key>\n    <string>Configuration</string>\n    <key>PayloadUUID</key>\n    <string>' + generateUUID() + '</string>\n    <key>PayloadVersion</key>\n    <integer>1</integer>\n</dict>\n</plist>';
 
         if (configBlobUrl) URL.revokeObjectURL(configBlobUrl);
         configBlobUrl = URL.createObjectURL(new Blob([config], { type: 'application/x-apple-aspen-config' }));
         configFile = { name: 'WebClip.mobileconfig', blobUrl: configBlobUrl };
 
+        if (userScriptBlobUrl) URL.revokeObjectURL(userScriptBlobUrl);
+        if (userScript) {
+            userScriptBlobUrl = URL.createObjectURL(new Blob([userScript], { type: 'text/javascript' }));
+            $('userscript-btn').style.display = 'flex';
+        } else {
+            $('userscript-btn').style.display = 'none';
+        }
+
         $('download-row').style.display = 'grid';
-        $('status').textContent = 'Tạo thành công! (Đã nhúng UserScript)';
+        $('status').textContent = 'Tạo thành công!';
         $('status').className = 'status';
         btn.disabled = false;
     };
 
-    // --- Tải / Cài ---
     $('install-btn').onclick = function() { if (configFile) window.location.href = configFile.blobUrl; };
     $('save-btn').onclick = function() { if (configFile) download(configFile.blobUrl, configFile.name); };
+    $('userscript-btn').onclick = function() { if (userScriptBlobUrl) download(userScriptBlobUrl, 'script.user.js'); };
 
     function download(url, name) {
         var a = document.createElement('a'); a.href = url; a.download = name;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
-    
     function esc(s) { 
         return String(s)
             .replace(/&/g,'&amp;')
